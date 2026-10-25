@@ -12,23 +12,33 @@ import * as Blockly from 'blockly/core';
 // This file has no side effects!
 export const forBlock = Object.create(null);
 
-forBlock['add_text'] = function (
-  block: Blockly.Block,
-  generator: Blockly.CodeGenerator,
-) {
-  const text = generator.valueToCode(block, 'TEXT', Order.NONE) || "''";
-  const addText = generator.provideFunction_(
-    'addText',
-    `function ${generator.FUNCTION_NAME_PLACEHOLDER_}(text) {
 
-  // Add text to the output area.
-  const outputDiv = document.getElementById('output');
-  const textEl = document.createElement('p');
-  textEl.innerText = text;
-  outputDiv.appendChild(textEl);
-}`,
-  );
-  // Generate the function call for this block.
-  const code = `${addText}(${text});\n`;
-  return code;
+// defines the javascript code for the movement blocks by calling move()
+// 0 = up, 1 = down, 2 = right, 3 = left
+forBlock['move_up'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return 'move(0);\n';
+};
+
+forBlock['move_down'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return 'move(1);\n';
+};
+
+forBlock['move_right'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return 'move(2);\n';
+};
+
+forBlock['move_left'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return 'move(3);\n';
 };

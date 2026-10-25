@@ -17,6 +17,29 @@ export const toolbox = {
   contents: [
     {
       kind: 'category',
+      name: 'Movement',
+      categorystyle: 'movement_category',
+      contents: [
+        {
+          kind: 'block',
+          type: 'move_down',
+        },
+        {
+          kind: 'block',
+          type: 'move_right',
+        },
+        {
+          kind: 'block',
+          type: 'move_left',
+        },
+        {
+          kind: 'block',
+          type: 'move_up',
+        },
+      ]
+    },
+    {
+      kind: 'category',
       name: 'Logic',
       categorystyle: 'logic_category',
       contents: [
@@ -487,20 +510,6 @@ export const toolbox = {
             TEXT: {
               shadow: {
                 type: 'text',
-              },
-            },
-          },
-        },
-        {
-          kind: 'block',
-          type: 'add_text',
-          inputs: {
-            TEXT: {
-              shadow: {
-                type: 'text',
-                fields: {
-                  TEXT: 'abc',
-                },
               },
             },
           },
