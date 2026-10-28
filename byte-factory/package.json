@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "test": "echo \"Warning: no test specified\" && exit 0",
+    "test": "vitest run",
     "build": "webpack --mode production",
     "start": "webpack serve --open --mode development"
   },
