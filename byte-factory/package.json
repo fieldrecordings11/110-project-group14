@@ -7,7 +7,8 @@
   "scripts": {
     "test": "vitest run",
     "build": "webpack --mode production",
-    "start": "webpack serve --open --mode development"
+    "start": "webpack serve --open --mode development",
+    "preview:roadmap": "webpack serve --config webpack.roadmap.config.js --mode development"
   },
   "keywords": [
     "blockly"
@@ -36,6 +37,7 @@
     "webpack-dev-server": "^6.0.0"
   },
   "dependencies": {
-    "blockly": "^13.4.0"
+    "blockly": "^13.4.0",
+    "konva": "^10.9.0"
   }
 }
