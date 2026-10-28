@@ -1,0 +1,80 @@
+# Runs the Byte Factory checks on every pull request and on every push to main.
+# The app lives in byte-factory/ (Blockly + webpack + Vitest).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A newer push to the same branch or PR cancels the run that is still going.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  APP_DIR: byte-factory
+
+jobs:
+  test:
+    name: Typecheck, test (Vitest) and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Look for the app
+        id: app
+        run: |
+          if [ -f "$APP_DIR/package.json" ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No $APP_DIR/package.json on this ref yet; skipping checks."
+          fi
+
+      - name: Set up Node.js
+        if: steps.app.outputs.found == 'true'
+        uses: actions/setup-node@v4
+        with:
+          # Same version as local dev (.nvmrc). Vitest 5 needs Node ^22.12, and
+          # Blockly's jsdom dependency crashes on Node 20.
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        if: steps.app.outputs.found == 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: npm ci --no-audit --no-fund
+
+      - name: Make sure Vitest is installed
+        if: steps.app.outputs.found == 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          if ! npm ls vitest --depth=0 > /dev/null 2>&1; then
+            echo "::error::vitest is not in $APP_DIR/package.json. Run 'npm install -D vitest' in $APP_DIR (or merge main into this branch)."
+            exit 1
+          fi
+
+      - name: Typecheck
+        if: steps.app.outputs.found == 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: npx tsc --noEmit
+
+      # Called directly so CI does not depend on the "test" script in package.json.
+      # Fails when there are no test files, or a test file contains no tests.
+      - name: Run tests (Vitest)
+        if: steps.app.outputs.found == 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: npx vitest run --reporter=default --reporter=github-actions
+
+      - name: Build (webpack)
+        if: steps.app.outputs.found == 'true'
+        working-directory: ${{ env.APP_DIR }}
+        run: npm run build
