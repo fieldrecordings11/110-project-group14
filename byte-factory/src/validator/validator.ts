@@ -1,4 +1,5 @@
-import { ValidationResult, Level } from "./types";
+import { ValidationResult } from "./types";
+import { Level } from "../levels/types"
 import * as Blockly from "blockly/core"
 
 export class Validator {
