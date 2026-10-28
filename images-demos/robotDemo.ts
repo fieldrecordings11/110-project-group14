@@ -160,3 +160,71 @@ export const exampleMoveDemo: DemoBuilder = (g, w, h) => {
   tween.play();
   return () => tween.destroy();
 };
+// ---------- Helpers ----------
+const demoLabel = (g: Konva.Group, text: string) =>
+  g.add(new Konva.Text({ x: 14, y: 10, text, fontSize: 12, fill: '#8fc4ff', fontFamily: 'monospace' }));
+
+const belt = (g: Konva.Group, x: number, y: number, w: number) =>
+  g.add(new Konva.Rect({ x, y, width: w, height: 10, fill: '#37474f', cornerRadius: 3 }));
+
+const crate = (fill: string) =>
+  new Konva.Rect({ width: 36, height: 36, offsetY: 36, fill, stroke: '#fff', strokeWidth: 2, cornerRadius: 3 });
+
+// ---------- Level 2: repeat block ----------
+export const repeatDemo: DemoBuilder = (g, w, h) => {
+  demoLabel(g, 'repeat 5 times: make crate');
+  belt(g, 20, h / 2 + 20, w - 40);
+  const counter = new Konva.Text({ x: w - 70, y: 10, text: '0 / 5', fontSize: 12, fill: '#fff', fontFamily: 'monospace' });
+  g.add(counter);
+  let n = 0;
+  let live = true;
+  const spawn = () => {
+    if (!live) return;
+    if (n === 5) {
+      n = 0;
+      g.getChildren((node: Konva.Node) => node.getAttr('isCrate')).forEach((c: Konva.Node) => c.destroy());
+    }
+    n++;
+    counter.text(n + ' / 5');
+    const b = crate('#4f86d6');
+    b.setAttr('isCrate', true);
+    b.position({ x: 20, y: h / 2 + 20 });
+    g.add(b);
+    new Konva.Tween({ node: b, x: 20 + (n - 1) * 44 + 20, duration: 0.5, easing: Konva.Easings.EaseOut }).play();
+  };
+  spawn();
+  const timer = setInterval(spawn, 800);
+  return () => { live = false; clearInterval(timer); };
+};
+
+// ---------- Level 3: if / else block ----------
+export const ifDemo: DemoBuilder = (g, w, h) => {
+  demoLabel(g, 'if blue: top belt, else: bottom');
+  const y0 = h / 2 - 10;
+  belt(g, 20, y0 + 10, w / 2 - 20);
+  belt(g, w / 2 + 20, y0 - 40, w / 2 - 40);
+  belt(g, w / 2 + 20, y0 + 60, w / 2 - 40);
+  let live = true;
+  let flip = false;
+  let tw: Konva.Tween | undefined;
+  const run = () => {
+    if (!live) return;
+    flip = !flip;
+    const b = crate(flip ? '#8fc4ff' : '#ff9f68');
+    b.position({ x: 20, y: y0 + 10 });
+    g.add(b);
+    tw = new Konva.Tween({
+      node: b, x: w / 2 + 10, duration: 1,
+      onFinish: () => {
+        tw = new Konva.Tween({
+          node: b, x: w - 56, y: flip ? y0 - 40 : y0 + 60, duration: 1,
+          onFinish: () => { b.destroy(); run(); },
+        });
+        tw.play();
+      },
+    });
+    tw.play();
+  };
+  run();
+  return () => { live = false; tw?.destroy(); };
+};
