@@ -7,67 +7,90 @@
 import * as Blockly from 'blockly';
 import {forBlock as moveGeneration} from './generators/moveGeneration';
 import {javascriptGenerator} from 'blockly/javascript';
-import {save, load} from './serialization';
 import {toolbox} from './toolbox';
 import './index.css';
 import './blocks/movement';
+import {generateCode, runCode} from './interpreter/interpreter';
+import {GridView} from './animation/GridView';
+import {TracePlayer} from './animation/TracePlayer';
+import {Validator} from './validator/validator';
+import {demoLevel, demoMap} from './levels/demo';
 
 // Register the blocks and generator with Blockly
 Object.assign(javascriptGenerator.forBlock, moveGeneration);
 
 // Set up UI elements and inject Blockly
 const codeDiv = document.getElementById('generatedCode')?.firstChild;
-const outputDiv = document.getElementById('output');
+const statusEl = document.getElementById('status');
 const blocklyDiv = document.getElementById('blocklyDiv');
+const gameDiv = document.getElementById('gameCanvas') as HTMLDivElement | null;
+const runButton = document.getElementById('runButton') as HTMLButtonElement | null;
+const resetButton = document.getElementById('resetButton') as HTMLButtonElement | null;
 
-if (!blocklyDiv) {
-  throw new Error(`div with id 'blocklyDiv' not found`);
+if (!blocklyDiv || !gameDiv) {
+  throw new Error(`div with id 'blocklyDiv' or 'gameCanvas' not found`);
 }
 const ws = Blockly.inject(blocklyDiv, {toolbox});
 
-// This function resets the code and output divs, shows the
-// generated code from the workspace, and evals the code.
-// In a real application, you probably shouldn't use `eval`.
-const runCode = () => {
-  const code = javascriptGenerator.workspaceToCode(ws as Blockly.Workspace);
-  if (codeDiv) codeDiv.textContent = code;
+const view = new GridView(gameDiv, demoMap);
+const player = new TracePlayer(view);
+const validator = new Validator();
 
-  if (outputDiv) outputDiv.innerHTML = '';
-
-  // Wrap `eval` in a `try/catch` so that any runtime errors are
-  // logged to the console, instead of failing quietly.
-  try {
-    eval(code);
-  } catch (error) {
-    console.log(error);
-  }
+const setStatus = (text: string, tone: 'info' | 'success' | 'error' = 'info') => {
+  if (!statusEl) return;
+  statusEl.textContent = text;
+  statusEl.className = tone;
 };
 
-if (ws) {
-  // Load the initial state from storage and run the code.
-  load(ws);
-  runCode();
+// Show the generated code (without the interpreter's tracking calls).
+const showCode = () => {
+  if (codeDiv) codeDiv.textContent = javascriptGenerator.workspaceToCode(ws);
+};
 
-  // Every time the workspace changes state, save the changes to storage.
-  ws.addChangeListener((e: Blockly.Events.Abstract) => {
-    // UI events are things like scrolling, zooming, etc.
-    // No need to save after one of these.
-    if (e.isUiEvent) return;
-    save(ws);
+// Validate -> interpret into a trace -> animate the trace, highlighting each block.
+const run = async () => {
+  player.stop();
+  const validation = validator.validate(ws, demoLevel);
+  if (!validation.ok) {
+    if (validation.blockId) ws.getBlockById(validation.blockId)?.select();
+    setStatus(validation.message, 'error');
+    return;
+  }
+
+  const result = runCode(generateCode(ws), demoMap);
+  setStatus('Running...');
+  if (runButton) runButton.disabled = true;
+
+  const playback = await player.play(result.trace, demoMap.start, {
+    onStep: (step) => ws.highlightBlock(step.blockId),
   });
 
-  // Whenever the workspace changes meaningfully, run the code again.
+  ws.highlightBlock(null);
+  if (runButton) runButton.disabled = false;
+  if (playback === 'stopped') return;
+  setStatus(result.message, result.outcome === 'reached_goal' ? 'success' : 'error');
+};
+
+const reset = () => {
+  player.stop();
+  ws.highlightBlock(null);
+  view.reset(demoMap.start);
+  if (runButton) runButton.disabled = false;
+  setStatus('Press Run to start.');
+};
+
+runButton?.addEventListener('click', () => void run());
+resetButton?.addEventListener('click', reset);
+
+if (ws) {
+  showCode();
+  setStatus('Press Run to start.');
+
+  // Keep the generated code panel up to date.
   ws.addChangeListener((e: Blockly.Events.Abstract) => {
-    // Don't run the code when the workspace finishes loading; we're
-    // already running it once when the application starts.
-    // Don't run the code during drags; we might have invalid state.
-    if (
-      e.isUiEvent ||
-      e.type == Blockly.Events.FINISHED_LOADING ||
-      ws.isDragging()
-    ) {
+    if (e.isUiEvent || e.type == Blockly.Events.FINISHED_LOADING || ws.isDragging()) {
       return;
     }
-    runCode();
+    showCode();
   });
 }
