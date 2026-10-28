@@ -160,7 +160,7 @@ export const exampleMoveDemo: DemoBuilder = (g, w, h) => {
   tween.play();
   return () => tween.destroy();
 };
-// ---------- Helpers ----------
+//helper func
 const demoLabel = (g: Konva.Group, text: string) =>
   g.add(new Konva.Text({ x: 14, y: 10, text, fontSize: 12, fill: '#8fc4ff', fontFamily: 'monospace' }));
 
@@ -170,7 +170,7 @@ const belt = (g: Konva.Group, x: number, y: number, w: number) =>
 const crate = (fill: string) =>
   new Konva.Rect({ width: 36, height: 36, offsetY: 36, fill, stroke: '#fff', strokeWidth: 2, cornerRadius: 3 });
 
-// ---------- Level 2: repeat block ----------
+//animation demo, blocks movin 
 export const repeatDemo: DemoBuilder = (g, w, h) => {
   demoLabel(g, 'repeat 5 times: make crate');
   belt(g, 20, h / 2 + 20, w - 40);
@@ -197,7 +197,7 @@ export const repeatDemo: DemoBuilder = (g, w, h) => {
   return () => { live = false; clearInterval(timer); };
 };
 
-// ---------- Level 3: if / else block ----------
+//third slide animation
 export const ifDemo: DemoBuilder = (g, w, h) => {
   demoLabel(g, 'if blue: top belt, else: bottom');
   const y0 = h / 2 - 10;
