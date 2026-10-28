@@ -1,5 +1,5 @@
 import { Level } from "./types";
 
 export const levels: Level[] = [
-    //level objects go here
+    //level objects will go here
 ]
