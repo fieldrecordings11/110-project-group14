@@ -1,30 +1,39 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import * as Blockly from 'blockly/core';
-import 'blockly/blocks'; // built-in blocks, e.g. 'text'
 import { javascriptGenerator } from 'blockly/javascript';
-import { blocks } from '../blocks/text';
-import { forBlock } from '../generators/javascript';
+import '../blocks/movement';
+import { forBlock } from '../generators/moveGeneration';
 
-describe('add_text block', () => {
+// move(n) codes the interpreter relies on: 0 = up, 1 = down, 2 = right, 3 = left.
+const MOVES: [string, string][] = [
+  ['move_up', 'move(0);'],
+  ['move_down', 'move(1);'],
+  ['move_right', 'move(2);'],
+  ['move_left', 'move(3);'],
+];
+
+describe('movement blocks', () => {
   beforeAll(() => {
-    Blockly.common.defineBlocks(blocks);
     Object.assign(javascriptGenerator.forBlock, forBlock);
   });
 
-  it('is registered with Blockly', () => {
-    expect(Blockly.Blocks['add_text']).toBeDefined();
+  it.each(MOVES)('%s is registered with Blockly', (type) => {
+    expect(Blockly.Blocks[type]).toBeDefined();
   });
 
-  it('generates a call to addText with the given text', () => {
+  it.each(MOVES)('%s generates %s', (type, code) => {
     const workspace = new Blockly.Workspace();
-    const addText = workspace.newBlock('add_text');
-    const text = workspace.newBlock('text');
-    text.setFieldValue('hello', 'TEXT');
-    addText.getInput('TEXT')!.connection!.connect(text.outputConnection!);
+    workspace.newBlock(type);
+    expect(javascriptGenerator.workspaceToCode(workspace).trim()).toBe(code);
+    workspace.dispose();
+  });
 
-    const code = javascriptGenerator.workspaceToCode(workspace);
-
-    expect(code).toContain("addText('hello');");
+  it('chains stacked blocks in order', () => {
+    const workspace = new Blockly.Workspace();
+    const right = workspace.newBlock('move_right');
+    const down = workspace.newBlock('move_down');
+    right.nextConnection!.connect(down.previousConnection!);
+    expect(javascriptGenerator.workspaceToCode(workspace)).toBe('move(2);\nmove(1);\n');
     workspace.dispose();
   });
 });

@@ -31,10 +31,30 @@ code {
 }
 
 #generatedCode {
-  height: 50%;
+  flex: 1;
   background-color: rgb(247, 240, 228);
 }
 
-#output {
-  height: 50%;
+#controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+#controls button {
+  font-size: 1rem;
+  padding: 0.4rem 1.2rem;
+  cursor: pointer;
+}
+
+#status {
+  min-height: 1.5em;
+}
+
+#status.success {
+  color: #1e8e3e;
+}
+
+#status.error {
+  color: #c0392b;
 }
