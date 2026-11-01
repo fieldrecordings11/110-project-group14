@@ -56,6 +56,29 @@ export const toolbox = {
     },
     {
       kind: 'category',
+      name: 'Sensing',
+      colour: 120,
+      contents: [
+        {
+          kind: 'block',
+          type: 'path_clear_up',
+        },
+        {
+          kind: 'block',
+          type: 'path_clear_down',
+        },
+        {
+          kind: 'block',
+          type: 'path_clear_right',
+        },
+        {
+          kind: 'block',
+          type: 'path_clear_left',
+        },
+      ]
+    },
+    {
+      kind: 'category',
       name: 'Logic',
       categorystyle: 'logic_category',
       contents: [
