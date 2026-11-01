@@ -1,4 +1,3 @@
-import { colour } from 'blockly/blocks';
 import * as Blockly from 'blockly/core';
 
 Blockly.defineBlocksWithJsonArray([
