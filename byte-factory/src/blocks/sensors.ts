@@ -33,5 +33,20 @@ Blockly.defineBlocksWithJsonArray([
         tooltip: 'Check if block down is clear',
         helpUrl: '',
     },
-
+    {
+        type:'is_holding_item',
+        message0: 'Check holding item',
+        output: 'Boolean',
+        colour: 120,
+        tooltip: 'Check if robot is holding item',
+        helpUrl: '',
+    },
+    {
+        type:'on_finish_grid',
+        message0: 'Standing on finish',
+        output: 'Boolean',
+        colour: 120,
+        tooltip: 'Check if standing on finish block',
+        helpUrl: '',
+    },
 ]);

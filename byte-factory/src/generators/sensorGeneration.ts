@@ -34,3 +34,17 @@ sensorBlock['path_clear_left'] = function (
 ) {
     return ['checkClear(0)', Order.ATOMIC];
 };
+
+sensorBlock['is_holding_item'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return ['checkHolding()', Order.ATOMIC];
+};
+
+sensorBlock['on_finish_grid'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return ['checkFinish()', Order.ATOMIC];
+};

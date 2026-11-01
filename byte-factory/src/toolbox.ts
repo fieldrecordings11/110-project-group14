@@ -75,6 +75,14 @@ export const toolbox = {
           kind: 'block',
           type: 'path_clear_left',
         },
+        {
+          kind: 'block',
+          type: 'is_holding_item',
+        },
+        {
+          kind: 'block',
+          type: 'on_finish_grid',
+        },
       ]
     },
     {
