@@ -5,8 +5,10 @@
  */
 
 import * as Blockly from 'blockly/core';
+import { Direction } from './const';
 
 export const moveBlock = Object.create(null);
+
 
 
 // defines the javascript code for the movement blocks by calling move()
@@ -15,26 +17,26 @@ moveBlock['move_up'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(0);\n';
+    return 'move(Direction.UP);\n';
 };
 
 moveBlock['move_down'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(1);\n';
+    return 'move(Direction.DOWN);\n';
 };
 
 moveBlock['move_right'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(2);\n';
+    return 'move(Direction.RIGHT);\n';
 };
 
 moveBlock['move_left'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(3);\n';
+    return 'move(Direction.LEFT);\n';
 };

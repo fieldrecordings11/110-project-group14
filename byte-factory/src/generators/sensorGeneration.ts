@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly/core';
 import { javascriptGenerator, Order } from 'blockly/javascript';
+import { Direction } from './const';
 
 export const sensorBlock = Object.create(null);
 
@@ -11,28 +12,28 @@ sensorBlock['path_clear_up'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(0)', Order.ATOMIC];
+    return ['checkClear(Direction.UP)', Order.ATOMIC];
 };
 
 sensorBlock['path_clear_down'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(1)', Order.ATOMIC];
+    return ['checkClear(Direction.DOWN)', Order.ATOMIC];
 };
 
 sensorBlock['path_clear_right'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(2)', Order.ATOMIC];
+    return ['checkClear(Direction.RIGHT)', Order.ATOMIC];
 };
 
 sensorBlock['path_clear_left'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(3)', Order.ATOMIC];
+    return ['checkClear(Direction.LEFT)', Order.ATOMIC];
 };
 
 sensorBlock['is_holding_item'] = function (
