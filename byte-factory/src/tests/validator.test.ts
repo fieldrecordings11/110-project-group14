@@ -1,36 +1,102 @@
-import { describe, it, expect } from "vitest";
-import { Validator } from "../validator/validator";
-import { Level } from "../validator/types";
-import { repeat, stack, workspaceWith } from "./helpers";
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import * as Blockly from 'blockly/core';
+import 'blockly/blocks'; // built-in blocks, e.g. "text", "logic_boolean"
+import { Validator } from '../validator/validator';
+import { Level } from '../levels/types';
 
 const level: Level = {
-  id: "test",
-  allowedBlocks: ["move_right", "move_down", "controls_repeat_ext", "math_number"],
-  blockLimit: 3,
+    id: 'test-level',
+    allowedBlocks: ['text', 'logic_boolean'],
+    blockLimit: 2,
+    instructions: 'Test level',
 };
 
-describe("Validator", () => {
-  const validator = new Validator();
+describe('Validator', () => {
+    const validator = new Validator();
+    let workspace: Blockly.Workspace;
 
-  it("rejects an empty program", () => {
-    const result = validator.validate(workspaceWith(), level);
-    expect(result).toMatchObject({ ok: false, reason: "empty_program" });
-  });
+    beforeAll(() => {
+        // the real "start" block isn't defined yet; this stand-in only needs the type name
+        if (!Blockly.Blocks['start']) {
+            Blockly.common.defineBlocksWithJsonArray([
+                { type: 'start', message0: 'start', nextStatement: null },
+            ]);
+        }
+    });
 
-  it("rejects blocks the level doesn't allow, pointing at the block", () => {
-    const ws = workspaceWith(stack("move_right", "move_up"));
-    const upId = ws.getAllBlocks(true)[1].id;
-    const result = validator.validate(ws, level);
-    expect(result).toMatchObject({ ok: false, reason: "block_not_allowed", blockId: upId });
-  });
+    beforeEach(() => {
+        workspace = new Blockly.Workspace();
+    });
 
-  it("rejects programs over the block limit", () => {
-    const ws = workspaceWith(stack("move_right", "move_right", "move_down", "move_down"));
-    expect(validator.validate(ws, level)).toMatchObject({ ok: false, reason: "too_many_blocks" });
-  });
+    afterEach(() => {
+        workspace.dispose();
+    });
 
-  it("accepts a valid program", () => {
-    const ws = workspaceWith(repeat(2, stack("move_right")));
-    expect(validator.validate(ws, level)).toEqual({ ok: true });
-  });
+    it('rejects an empty workspace', () => {
+        const result = validator.validate(workspace, level);
+
+        expect(result).toMatchObject({ ok: false, reason: 'empty_program' });
+    });
+
+    it('rejects a workspace with only the start block', () => {
+        workspace.newBlock('start');
+
+        const result = validator.validate(workspace, level);
+
+        expect(result).toMatchObject({ ok: false, reason: 'empty_program' });
+    });
+
+    it('accepts allowed blocks under the limit', () => {
+        workspace.newBlock('text');
+
+        expect(validator.validate(workspace, level)).toEqual({ ok: true });
+    });
+
+    it('accepts allowed blocks exactly at the limit', () => {
+        workspace.newBlock('text');
+        workspace.newBlock('logic_boolean');
+
+        expect(validator.validate(workspace, level)).toEqual({ ok: true });
+    });
+
+    it("rejects a block that isn't allowed and reports its id", () => {
+        workspace.newBlock('text');
+        const notAllowed = workspace.newBlock('math_number');
+
+        const result = validator.validate(workspace, level);
+
+        expect(result).toMatchObject({
+            ok: false,
+            reason: 'block_not_allowed',
+            blockId: notAllowed.id,
+        });
+    });
+
+    it('rejects more blocks than the limit', () => {
+        workspace.newBlock('text');
+        workspace.newBlock('text');
+        workspace.newBlock('logic_boolean');
+
+        const result = validator.validate(workspace, level);
+
+        expect(result).toMatchObject({ ok: false, reason: 'too_many_blocks' });
+    });
+
+    it("doesn't count the start block toward the limit", () => {
+        workspace.newBlock('start');
+        workspace.newBlock('text');
+        workspace.newBlock('logic_boolean');
+
+        expect(validator.validate(workspace, level)).toEqual({ ok: true });
+    });
+
+    it('reports a disallowed block before checking the limit', () => {
+        workspace.newBlock('text');
+        workspace.newBlock('text');
+        workspace.newBlock('math_number');
+
+        const result = validator.validate(workspace, level);
+
+        expect(result).toMatchObject({ ok: false, reason: 'block_not_allowed' });
+    });
 });
