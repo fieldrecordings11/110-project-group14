@@ -5,8 +5,13 @@
  */
 
 import * as Blockly from 'blockly';
+
 import {forBlock as moveGeneration} from './generators/moveGeneration';
-import {javascriptGenerator} from 'blockly/javascript';
+import {actionBlock as actionGeneration} from './generators/actionGeneration'
+import { sensorBlock as sensorGeneration } from './generators/sensorGeneration';
+
+import {JavascriptGenerator, javascriptGenerator} from 'blockly/javascript';
+import {save, load} from './serialization';
 import {toolbox} from './toolbox';
 import './index.css';
 import './blocks/movement';
@@ -16,8 +21,14 @@ import {TracePlayer} from './animation/TracePlayer';
 import {Validator} from './validator/validator';
 import {demoLevel, demoMap} from './levels/demo';
 
+import './blocks/movement';
+import './blocks/actions';
+import './blocks/sensors';
+
 // Register the blocks and generator with Blockly
 Object.assign(javascriptGenerator.forBlock, moveGeneration);
+Object.assign(javascriptGenerator.forBlock, actionGeneration);
+Object.assign(javascriptGenerator.forBlock, sensorGeneration);
 
 // Set up UI elements and inject Blockly
 const codeDiv = document.getElementById('generatedCode')?.firstChild;

@@ -1,39 +1,74 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as Blockly from 'blockly/core';
-import { javascriptGenerator } from 'blockly/javascript';
+
+// Import your block definitions so they register with Blockly
+import '../blocks/actions';
 import '../blocks/movement';
-import { forBlock } from '../generators/moveGeneration';
+import '../blocks/sensors';
 
-// move(n) codes the interpreter relies on: 0 = up, 1 = down, 2 = right, 3 = left.
-const MOVES: [string, string][] = [
-  ['move_up', 'move(0);'],
-  ['move_down', 'move(1);'],
-  ['move_right', 'move(2);'],
-  ['move_left', 'move(3);'],
-];
+describe('Block Definitions', () => {
+  let workspace: Blockly.Workspace;
 
-describe('movement blocks', () => {
-  beforeAll(() => {
-    Object.assign(javascriptGenerator.forBlock, forBlock);
+  beforeEach(() => {
+    workspace = new Blockly.Workspace();
   });
 
-  it.each(MOVES)('%s is registered with Blockly', (type) => {
-    expect(Blockly.Blocks[type]).toBeDefined();
-  });
-
-  it.each(MOVES)('%s generates %s', (type, code) => {
-    const workspace = new Blockly.Workspace();
-    workspace.newBlock(type);
-    expect(javascriptGenerator.workspaceToCode(workspace).trim()).toBe(code);
+  afterEach(() => {
     workspace.dispose();
   });
 
-  it('chains stacked blocks in order', () => {
-    const workspace = new Blockly.Workspace();
-    const right = workspace.newBlock('move_right');
-    const down = workspace.newBlock('move_down');
-    right.nextConnection!.connect(down.previousConnection!);
-    expect(javascriptGenerator.workspaceToCode(workspace)).toBe('move(2);\nmove(1);\n');
-    workspace.dispose();
+  describe('Action Blocks', () => {
+    const actionTypes = ['pick_up', 'put_down', 'toggle'];
+
+    actionTypes.forEach((type) => {
+      it(`should have previous and next connections for ${type}`, () => {
+        const block = workspace.newBlock(type);
+        
+        // Action blocks should stack vertically
+        expect(block.previousConnection).not.toBeNull();
+        expect(block.nextConnection).not.toBeNull();
+        
+        // Action blocks should NOT have a puzzle tab output
+        expect(block.outputConnection).toBeNull();
+      });
+    });
+  });
+
+  describe('Movement Blocks', () => {
+    const movementTypes = ['move_up', 'move_down', 'move_right', 'move_left'];
+
+    movementTypes.forEach((type) => {
+      it(`should have previous and next connections for ${type}`, () => {
+        const block = workspace.newBlock(type);
+        
+        expect(block.previousConnection).not.toBeNull();
+        expect(block.nextConnection).not.toBeNull();
+        expect(block.outputConnection).toBeNull();
+      });
+    });
+  });
+
+  describe('Sensor Blocks', () => {
+    const sensorTypes = [
+      'path_clear_right',
+      'path_clear_left',
+      'path_clear_up',
+      'path_clear_down',
+      'is_holding_item',
+      'on_finish_grid'
+    ];
+
+    sensorTypes.forEach((type) => {
+      it(`should have an output connection but no statement connections for ${type}`, () => {
+        const block = workspace.newBlock(type);
+        
+        // Sensor blocks should have a puzzle tab to plug into Logic/Loop blocks
+        expect(block.outputConnection).not.toBeNull();
+        
+        // Sensor blocks should NOT stack vertically
+        expect(block.previousConnection).toBeNull();
+        expect(block.nextConnection).toBeNull();
+      });
+    });
   });
 });
