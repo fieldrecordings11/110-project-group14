@@ -6,7 +6,7 @@
 
 import * as Blockly from 'blockly';
 
-import {moveBlock as moveGeneration} from './generators/moveGeneration';
+import {forBlock as moveGeneration} from './generators/moveGeneration';
 import {actionBlock as actionGeneration} from './generators/actionGeneration'
 import { sensorBlock as sensorGeneration } from './generators/sensorGeneration';
 

@@ -9,12 +9,12 @@ import '../blocks/sensors';
 
 // Import your generators
 import { actionBlock } from '../generators/actionGeneration';
-import { moveBlock } from '../generators/moveGeneration';
+import { forBlock } from '../generators/moveGeneration';
 import { sensorBlock } from '../generators/sensorGeneration';
 
 // Register generators for tests
 Object.assign(javascriptGenerator.forBlock, actionBlock);
-Object.assign(javascriptGenerator.forBlock, moveBlock);
+Object.assign(javascriptGenerator.forBlock, forBlock);
 Object.assign(javascriptGenerator.forBlock, sensorBlock);
 
 describe('Blockly Code Generation', () => {
