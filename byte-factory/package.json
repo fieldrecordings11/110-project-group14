@@ -36,6 +36,7 @@
     "webpack-dev-server": "^6.0.0"
   },
   "dependencies": {
-    "blockly": "^13.4.0"
+    "blockly": "^13.4.0",
+    "konva": "^10.9.0"
   }
 }
