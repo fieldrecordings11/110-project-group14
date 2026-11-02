@@ -1,11 +1,12 @@
 import { GridMap } from '../interpreter/types';
-import { Level } from '../validator/types';
+import { Level } from './types';
 
 /** Temporary level for trying the interpreter until real levels exist. */
 export const demoLevel: Level = {
   id: 'demo',
   allowedBlocks: ['move_up', 'move_down', 'move_left', 'move_right', 'controls_repeat_ext', 'math_number'],
   blockLimit: 20,
+  instructions: 'demo-level'
 };
 
 export const demoMap: GridMap = {
