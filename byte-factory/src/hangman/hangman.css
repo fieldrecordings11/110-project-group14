@@ -1,0 +1,393 @@
+/* Hangman minigame. Everything is scoped under .hm-* so it cannot clash with the rest of the page. */
+
+.hm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.hm-overlay [hidden] {
+  display: none !important;
+}
+
+.hm-card {
+  position: relative;
+  box-sizing: border-box;
+  width: min(780px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 26px 34px 18px;
+  color: #fff;
+  background: #050806;
+  border: 4px solid #1f3326;
+  box-shadow: 0 0 0 4px #000, 0 12px 40px rgba(0, 0, 0, 0.6);
+  font-family: 'Press Start 2P', 'Courier New', ui-monospace, monospace;
+  font-weight: 700;
+  outline: none;
+}
+
+/* Falling-code background: rows of random 0s and 1s, dimmed towards the middle. */
+.hm-matrix {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  margin: 0;
+  color: rgba(46, 204, 64, 0.28);
+  font: 11px/1.55 'Courier New', ui-monospace, monospace;
+  white-space: pre;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hm-matrix::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 45% 55%, rgba(5, 8, 6, 0.92) 25%, rgba(5, 8, 6, 0.25) 100%);
+}
+
+.hm-content {
+  position: relative;
+}
+
+.hm-close {
+  position: absolute;
+  top: -12px;
+  right: -20px;
+  padding: 6px 10px;
+  color: #9aa7a0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.hm-close:hover,
+.hm-close:focus-visible {
+  color: #fff;
+}
+
+.hm-title {
+  margin: 0 28px 10px 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 #1a6b3a;
+}
+
+.hm-snippet {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  color: #a8f0b4;
+  background: rgba(0, 0, 0, 0.6);
+  border-left: 4px solid #2ecc40;
+  font: 700 14px/1.5 'Courier New', ui-monospace, monospace;
+  white-space: pre-wrap;
+  overflow: auto;
+}
+
+.hm-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 20px;
+  align-items: center;
+}
+
+/* Letters: 8 columns. The first 3 rows sit above the answer, the last 2 below it. */
+.hm-keys {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+.hm-key {
+  padding: 9px 0;
+  color: #fff;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 21px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.hm-key:hover:not(:disabled),
+.hm-key:focus-visible {
+  color: #5fd3e6;
+  background: rgba(95, 211, 230, 0.14);
+  outline: none;
+}
+
+.hm-key:disabled {
+  cursor: default;
+}
+
+.hm-key--hit {
+  color: #2ecc40;
+}
+
+.hm-key--miss {
+  color: #e74c3c;
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* Answer boxes: always as wide as 8 boxes, shrinking when the answer is longer. */
+.hm-answer {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.hm-slot {
+  box-sizing: border-box;
+  flex: 0 0 calc(100% / var(--slots, 8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 54px;
+  color: #fff;
+  background: #0d100e;
+  border: 1px solid #56606a;
+  border-left-width: 0;
+  font-size: 22px;
+  text-transform: uppercase;
+}
+
+.hm-slot:first-child,
+.hm-slot--gap + .hm-slot {
+  border-left-width: 1px;
+}
+
+.hm-slot--gap {
+  background: transparent;
+  border: 0;
+}
+
+.hm-slot--missed {
+  color: #e74c3c;
+}
+
+.hm-answer--won .hm-slot {
+  color: #2ecc40;
+  border-color: #2ecc40;
+}
+
+.hm-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.hm-robot {
+  width: 130px;
+}
+
+.hm-robot-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.hm-robot--shake {
+  animation: hm-shake 0.35s linear;
+}
+
+.hm-robot--happy {
+  animation: hm-hop 0.5s ease-out 2;
+}
+
+@keyframes hm-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes hm-hop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.px-o { fill: #0b1020; }
+.px-g { fill: #cdd6de; }
+.px-G { fill: #8996a4; }
+.px-v { fill: #1b2430; }
+.px-b { fill: #3f8cff; }
+.px-W { fill: #bfe0ff; }
+.px-e { fill: #ffd23f; }
+
+.hm-robot--happy .px-e { fill: #2ecc40; }
+.hm-robot--sad .px-e { fill: #e74c3c; }
+
+/* Lives: one pip per wrong guess still allowed. */
+.hm-lives {
+  display: flex;
+  gap: 5px;
+}
+
+.hm-pip {
+  width: 12px;
+  height: 12px;
+  background: #5fd3e6;
+}
+
+.hm-pip--off {
+  background: #1d2823;
+}
+
+.hm-round {
+  color: #8fb39a;
+  font-size: 10px;
+}
+
+.hm-summary {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 260px;
+  text-align: center;
+}
+
+.hm-summary-score {
+  display: block;
+  margin-bottom: 10px;
+  color: #ffd23f;
+  font-size: 40px;
+}
+
+.hm-summary-label {
+  color: #cfe8d6;
+  font-size: 12px;
+}
+
+.hm-status p {
+  margin: 0;
+}
+
+.hm-status {
+  /* Tall enough for the message plus the Next button, so the card does not jump. */
+  min-height: 84px;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.hm-message--won {
+  color: #2ecc40;
+}
+
+.hm-message--lost {
+  color: #e74c3c;
+}
+
+.hm-hint {
+  color: #ffd23f;
+}
+
+.hm-next {
+  margin-top: 8px;
+  padding: 9px 16px;
+  color: #050806;
+  background: #5fd3e6;
+  border: 3px solid #fff;
+  font: inherit;
+  font-size: 12px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hm-next:hover {
+  background: #fff;
+}
+
+.hm-next:focus-visible {
+  outline: 3px solid #ffd23f;
+  outline-offset: 2px;
+}
+
+.hm-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.hm-clock {
+  display: inline-flex;
+  color: #fff;
+}
+
+.hm-footer-label {
+  font-size: 10px;
+}
+
+.hm-timer {
+  flex: 1;
+  height: 4px;
+  background: #36424c;
+}
+
+.hm-timer-fill {
+  height: 100%;
+  background: #fff;
+  transform-origin: left center;
+}
+
+.hm-timer-fill--low {
+  background: #e74c3c;
+}
+
+@media (max-width: 640px) {
+  .hm-card {
+    padding: 22px 16px 14px;
+  }
+
+  .hm-title {
+    font-size: 13px;
+  }
+
+  .hm-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hm-side {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .hm-robot {
+    width: 70px;
+  }
+
+  .hm-key {
+    padding: 7px 0;
+    font-size: 16px;
+  }
+
+  .hm-slot {
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .hm-close {
+    right: -8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-robot--shake,
+  .hm-robot--happy {
+    animation: none;
+  }
+}
