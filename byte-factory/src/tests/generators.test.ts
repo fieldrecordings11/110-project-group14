@@ -54,25 +54,25 @@ describe('Blockly Code Generation', () => {
     it('should generate correct code for move_up', () => {
       const block = workspace.newBlock('move_up');
       const code = javascriptGenerator.blockToCode(block);
-      expect(code).toBe('move(Direction.UP);\n');
+      expect(code).toBe('move(0);\n');
     });
 
     it('should generate correct code for move_down', () => {
       const block = workspace.newBlock('move_down');
       const code = javascriptGenerator.blockToCode(block);
-      expect(code).toBe('move(Direction.DOWN);\n');
+      expect(code).toBe('move(1);\n');
     });
 
     it('should generate correct code for move_right', () => {
       const block = workspace.newBlock('move_right');
       const code = javascriptGenerator.blockToCode(block);
-      expect(code).toBe('move(Direction.RIGHT);\n');
+      expect(code).toBe('move(2);\n');
     });
 
     it('should generate correct code for move_left', () => {
       const block = workspace.newBlock('move_left');
       const code = javascriptGenerator.blockToCode(block);
-      expect(code).toBe('move(Direction.LEFT);\n');
+      expect(code).toBe('move(3);\n');
     });
   });
 
@@ -80,25 +80,25 @@ describe('Blockly Code Generation', () => {
     it('should generate correct code for path_clear_up', () => {
       const block = workspace.newBlock('path_clear_up');
       const codeTuple = javascriptGenerator.blockToCode(block) as [string, number];
-      expect(codeTuple[0]).toBe('checkClear(Direction.UP)');
+      expect(codeTuple[0]).toBe('checkClear(0)');
     });
 
     it('should generate correct code for path_clear_down', () => {
       const block = workspace.newBlock('path_clear_down');
       const codeTuple = javascriptGenerator.blockToCode(block) as [string, number];
-      expect(codeTuple[0]).toBe('checkClear(Direction.DOWN)');
+      expect(codeTuple[0]).toBe('checkClear(1)');
     });
 
     it('should generate correct code for path_clear_right', () => {
       const block = workspace.newBlock('path_clear_right');
       const codeTuple = javascriptGenerator.blockToCode(block) as [string, number];
-      expect(codeTuple[0]).toBe('checkClear(Direction.RIGHT)');
+      expect(codeTuple[0]).toBe('checkClear(2)');
     });
 
     it('should generate correct code for path_clear_left', () => {
       const block = workspace.newBlock('path_clear_left');
       const codeTuple = javascriptGenerator.blockToCode(block) as [string, number];
-      expect(codeTuple[0]).toBe('checkClear(Direction.LEFT)');
+      expect(codeTuple[0]).toBe('checkClear(3)');
     });
 
     it('should generate correct code for is_holding_item', () => {

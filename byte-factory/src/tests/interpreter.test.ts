@@ -18,7 +18,7 @@ describe('generateCode', () => {
     const blockId = ws.getAllBlocks(false)[0].id;
     const code = generateCode(ws);
     expect(code).toContain(`highlightBlock('${blockId}')`);
-    expect(code).toContain('move(Direction.RIGHT);');
+    expect(code).toContain('move(2);');
 
     // A second, plain generation must not carry the interpreter's hooks.
     expect(generateCode(ws)).toBe(code);

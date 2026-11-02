@@ -17,26 +17,26 @@ forBlock['move_up'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(Direction.UP);\n';
+    return `move(${Direction.UP});\n`;
 };
 
 forBlock['move_down'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(Direction.DOWN);\n';
+    return `move(${Direction.DOWN});\n`;
 };
 
 forBlock['move_right'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(Direction.RIGHT);\n';
+    return `move(${Direction.RIGHT});\n`;
 };
 
 forBlock['move_left'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(Direction.LEFT);\n';
+    return `move(${Direction.LEFT});\n`;
 };

@@ -12,28 +12,28 @@ sensorBlock['path_clear_up'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(Direction.UP)', Order.ATOMIC];
+    return [`checkClear(${Direction.UP})`, Order.ATOMIC];
 };
 
 sensorBlock['path_clear_down'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(Direction.DOWN)', Order.ATOMIC];
+    return [`checkClear(${Direction.DOWN})`, Order.ATOMIC];
 };
 
 sensorBlock['path_clear_right'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(Direction.RIGHT)', Order.ATOMIC];
+    return [`checkClear(${Direction.RIGHT})`, Order.ATOMIC];
 };
 
 sensorBlock['path_clear_left'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return ['checkClear(Direction.LEFT)', Order.ATOMIC];
+    return [`checkClear(${Direction.LEFT})`, Order.ATOMIC];
 };
 
 sensorBlock['is_holding_item'] = function (
