@@ -1,5 +1,5 @@
-import { Level } from "./types";
-import { levels } from "./data";
+import { Level } from './types';
+import { levels } from './data';
 
 export class LevelRegistry {
     private readonly levels: Level[];
