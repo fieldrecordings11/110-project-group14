@@ -13,6 +13,13 @@ export type HangmanOptions = {
   random?: () => number;
 };
 
+/** Passed to open()'s onClose callback. finished is true when the player reached the score screen. */
+export type HangmanResult = {
+  finished: boolean;
+  solved: number;
+  total: number;
+};
+
 const DEFAULT_TIME_LIMIT_MS = 60_000;
 const DEFAULT_ROUNDS = 5;
 const TICK_MS = 100;
@@ -75,6 +82,7 @@ type Ui = {
 export class HangmanMinigame {
   private ui: Ui | null = null;
   private opener: Element | null = null;
+  private onClose: ((result: HangmanResult) => void) | undefined;
 
   private questions: HangmanQuestion[] = [];
   private index = 0;
@@ -100,9 +108,13 @@ export class HangmanMinigame {
     return this.ui !== null;
   }
 
-  /** Starts a session with the questions for this level. Does nothing if already open. */
-  open(levelId: string): void {
+  /**
+   * Starts a session with the questions for this level. Does nothing if already open.
+   * onClose runs once when the minigame closes, however it was closed.
+   */
+  open(levelId: string, onClose?: (result: HangmanResult) => void): void {
     if (this.ui) return;
+    this.onClose = onClose;
     this.opener = document.activeElement;
     this.questions = shuffle(questionsForLevel(levelId), this.random).slice(0, this.rounds);
     this.index = 0;
@@ -125,6 +137,10 @@ export class HangmanMinigame {
     this.game = null;
     if (this.opener instanceof HTMLElement) this.opener.focus();
     this.opener = null;
+
+    const onClose = this.onClose;
+    this.onClose = undefined;
+    onClose?.({ finished: this.finished, solved: this.solved, total: this.questions.length });
   }
 
   // ---------------------------------------------------------------- building the page
