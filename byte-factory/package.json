@@ -5,9 +5,11 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "test": "echo \"Warning: no test specified\" && exit 0",
+    "test": "vitest run",
     "build": "webpack --mode production",
-    "start": "webpack serve --open --mode development"
+    "start": "webpack serve --open --mode development",
+    "preview:roadmap": "webpack serve --config webpack.roadmap.config.js --mode development",
+    "preview:menu": "webpack serve --config webpack.menu.config.js --mode development"
   },
   "keywords": [
     "blockly"
@@ -30,11 +32,13 @@
     "style-loader": "^4.0.0",
     "ts-loader": "^9.6.1",
     "typescript": "^6.0.3",
+    "vitest": "^5.0.5",
     "webpack": "^5.111.1",
     "webpack-cli": "^7.2.3",
     "webpack-dev-server": "^6.0.0"
   },
   "dependencies": {
-    "blockly": "^13.4.0"
+    "blockly": "^13.4.0",
+    "konva": "^10.9.0"
   }
 }
