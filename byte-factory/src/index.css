@@ -58,3 +58,42 @@ code {
 #status.error {
   color: #c0392b;
 }
+
+.menu-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #222;
+}
+
+/* Back button on screens that don't have their own header (the roadmap). */
+.screen-back {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1;
+  font: bold 14px monospace;
+  padding: 0.4rem 0.8rem;
+  color: #e5f5ee;
+  background: #0d211c;
+  border: 1px solid #52686e;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#levelHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+#levelHeader h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+#backButton {
+  cursor: pointer;
+}
