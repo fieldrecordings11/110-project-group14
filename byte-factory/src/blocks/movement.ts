@@ -1,4 +1,3 @@
-import { colour } from 'blockly/blocks';
 import * as Blockly from 'blockly/core';
 
 Blockly.defineBlocksWithJsonArray([
@@ -26,7 +25,7 @@ Blockly.defineBlocksWithJsonArray([
         previousStatement: null,
         nextStatement: null,
         colour: 230,
-        tooltip: 'Move one tile down',
+        tooltip: 'Move one tile right',
         helpUrl: '',
     },
     {

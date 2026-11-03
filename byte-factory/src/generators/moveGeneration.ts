@@ -4,13 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {Order} from 'blockly/javascript';
 import * as Blockly from 'blockly/core';
+import { Direction } from './const';
 
-// Export all the code generators for our custom blocks,
-// but don't register them with Blockly yet.
-// This file has no side effects!
 export const forBlock = Object.create(null);
+
 
 
 // defines the javascript code for the movement blocks by calling move()
@@ -19,26 +17,26 @@ forBlock['move_up'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(0);\n';
+    return `move(${Direction.UP});\n`;
 };
 
 forBlock['move_down'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(1);\n';
+    return `move(${Direction.DOWN});\n`;
 };
 
 forBlock['move_right'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(2);\n';
+    return `move(${Direction.RIGHT});\n`;
 };
 
 forBlock['move_left'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,
 ) {
-    return 'move(3);\n';
+    return `move(${Direction.LEFT});\n`;
 };
