@@ -7,7 +7,8 @@
   "scripts": {
     "test": "vitest run",
     "build": "webpack --mode production",
-    "start": "webpack serve --open --mode development"
+    "start": "webpack serve --open --mode development",
+    "hangman": "webpack serve --open hangman.html --mode development"
   },
   "keywords": [
     "blockly"
