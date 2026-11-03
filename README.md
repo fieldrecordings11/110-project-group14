@@ -26,15 +26,6 @@ CI runs typecheck, tests and the build on every PR. A test file with no tests fa
 - `hangman/`: vocabulary minigame (not on the main page yet)
 - `tests/`: Vitest tests
 
-## Branches
-
-**Merged:** CI (#26), interpreter + animation (#31), validator + levels (#28), blocks (#33), roadmap (#36), Hangman (#35).
-
-**Not merged:**
-- `Main-Menu`: menu screen. It sits outside `byte-factory/`, so it needs moving before it can merge.
-- `level-loader`: loader skeleton, doesn't compile yet.
-- `blockly-compiler`: old approach, replaced by the interpreter.
-
 ## Known gaps
 
 - Action and sensor blocks crash when run. The interpreter only supports movement.
