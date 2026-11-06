@@ -12,7 +12,7 @@ export class MenuScreenView implements View {
 		const title = new Konva.Text({
 			x: 800 / 2,
 			y: 150,
-			text: "ROBOT CODE GAME",
+			text: "BYTE FACTORY",
 			fontSize: 48,
 			fontFamily: "Arial",
 			fill: "White",
