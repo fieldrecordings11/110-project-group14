@@ -41,6 +41,7 @@ const resetButton = document.getElementById('resetButton') as HTMLButtonElement 
 if (!blocklyDiv || !gameDiv) {
   throw new Error(`div with id 'blocklyDiv' or 'gameCanvas' not found`);
 }
+
 const ws = Blockly.inject(blocklyDiv, {toolbox});
 
 const view = new GridView(gameDiv, demoMap);
