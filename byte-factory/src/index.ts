@@ -44,6 +44,9 @@ if (!blocklyDiv || !gameDiv) {
 
 const ws = Blockly.inject(blocklyDiv, {toolbox});
 
+const currLevel = demoLevel.id ?? 'demo';
+load(ws, currLevel);
+
 const view = new GridView(gameDiv, demoMap);
 const player = new TracePlayer(view);
 const validator = new Validator();
@@ -98,11 +101,12 @@ if (ws) {
   showCode();
   setStatus('Press Run to start.');
 
-  // Keep the generated code panel up to date.
+  // Keep the generated code panel up to date AND auto-save
   ws.addChangeListener((e: Blockly.Events.Abstract) => {
     if (e.isUiEvent || e.type == Blockly.Events.FINISHED_LOADING || ws.isDragging()) {
       return;
     }
     showCode();
+    save(ws, currLevel);
   });
 }
