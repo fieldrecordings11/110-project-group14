@@ -8,7 +8,7 @@ import { HangmanQuestion } from './types';
  */
 const byLevel = new Map<string, HangmanQuestion[]>([
   [
-    'demo',
+    'sequencing',
     [
       {
         id: 'demo-move-right',
