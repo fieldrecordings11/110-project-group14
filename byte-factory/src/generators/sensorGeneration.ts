@@ -36,6 +36,35 @@ sensorBlock['path_clear_left'] = function (
     return [`checkClear(${Direction.LEFT})`, Order.ATOMIC];
 };
 
+// checkPuddle returns true when the next tile in that direction is a puddle
+sensorBlock['puddle_up'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return [`checkPuddle(${Direction.UP})`, Order.ATOMIC];
+};
+
+sensorBlock['puddle_down'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return [`checkPuddle(${Direction.DOWN})`, Order.ATOMIC];
+};
+
+sensorBlock['puddle_right'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return [`checkPuddle(${Direction.RIGHT})`, Order.ATOMIC];
+};
+
+sensorBlock['puddle_left'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return [`checkPuddle(${Direction.LEFT})`, Order.ATOMIC];
+};
+
 sensorBlock['is_holding_item'] = function (
     block: Blockly.Block,
     generator: Blockly.CodeGenerator,

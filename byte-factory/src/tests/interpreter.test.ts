@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { MAX_LOOP_ITERATIONS, generateCode, runCode, runWorkspace } from '../interpreter/interpreter';
 import { GridMap } from '../interpreter/types';
-import { repeat, stack, workspaceWith } from './helpers';
+import { ifElse, repeat, repeatUntil, stack, workspaceWith } from './helpers';
 
 // 4x3 floor, robot top-left, goal bottom-right, one wall in the middle.
 const map: GridMap = {
@@ -108,6 +108,82 @@ describe('runCode', () => {
   it('turns unexpected errors into a runtime_error result', () => {
     const result = runCode('move(9);', map);
     expect(result.outcome).toBe('runtime_error');
-    expect(result.message).toContain('Unknown move direction');
+    expect(result.message).toContain('Unknown direction');
+  });
+});
+
+describe('puddles and jumping', () => {
+  // 5x1 hallway: puddle at x = 2, wall at x = 4.
+  const hallway: GridMap = {
+    width: 5,
+    height: 1,
+    start: { x: 0, y: 0 },
+    goal: { x: 3, y: 0 },
+    walls: [{ x: 4, y: 0 }],
+    puddles: [{ x: 2, y: 0 }],
+  };
+
+  it('jumps two tiles over a puddle', () => {
+    const result = runWorkspace(workspaceWith(stack('move_right', 'jump_right')), hallway);
+    expect(result.outcome).toBe('reached_goal');
+    expect(result.trace[1]).toMatchObject({ kind: 'jump', from: { x: 1, y: 0 }, to: { x: 3, y: 0 } });
+  });
+
+  it('stops with hit_puddle when the robot walks into a puddle', () => {
+    const result = runWorkspace(workspaceWith(stack('move_right', 'move_right')), hallway);
+    expect(result.outcome).toBe('hit_puddle');
+    expect(result.trace[result.trace.length - 1]).toMatchObject({ kind: 'bump', target: { x: 2, y: 0 } });
+    expect(result.finalPosition).toEqual({ x: 1, y: 0 });
+  });
+
+  it('stops with hit_puddle when a jump lands in a puddle', () => {
+    const result = runWorkspace(workspaceWith(stack('jump_right')), hallway);
+    expect(result.outcome).toBe('hit_puddle');
+  });
+
+  it("can't jump over a wall", () => {
+    const result = runWorkspace(workspaceWith(stack('jump_right')), { ...hallway, start: { x: 3, y: 0 } });
+    expect(result.outcome).toBe('hit_wall');
+    expect(result.message).toContain('jump over a wall');
+    expect(result.finalPosition).toEqual({ x: 3, y: 0 });
+  });
+
+  it("can't land past the edge of the floor", () => {
+    const noWall = { ...hallway, walls: [], start: { x: 3, y: 0 } };
+    const result = runWorkspace(workspaceWith(stack('jump_right')), noWall);
+    expect(result.outcome).toBe('hit_wall');
+    expect(result.message).toContain('edge of the floor');
+  });
+});
+
+describe('sensors', () => {
+  const hallway: GridMap = {
+    width: 6,
+    height: 1,
+    start: { x: 0, y: 0 },
+    goal: { x: 5, y: 0 },
+    walls: [],
+    puddles: [{ x: 2, y: 0 }],
+  };
+
+  it('repeats until the robot is standing on the finish', () => {
+    const noPuddles = { ...hallway, puddles: [] };
+    const result = runWorkspace(workspaceWith(repeatUntil('on_finish_grid', stack('move_right'))), noPuddles);
+    expect(result.outcome).toBe('reached_goal');
+    expect(result.trace).toHaveLength(5);
+  });
+
+  it('checks for a puddle in an if/else', () => {
+    const program = repeatUntil('on_finish_grid', ifElse('puddle_right', stack('jump_right'), stack('move_right')));
+    const result = runWorkspace(workspaceWith(program), hallway);
+    expect(result.outcome).toBe('reached_goal');
+    expect(result.trace.map((step) => step.kind)).toEqual(['move', 'jump', 'move', 'move']);
+  });
+
+  it('treats puddles and walls as not clear', () => {
+    const program = repeatUntil('on_finish_grid', ifElse('path_clear_right', stack('move_right'), stack('jump_right')));
+    const result = runWorkspace(workspaceWith(program), hallway);
+    expect(result.outcome).toBe('reached_goal');
+    expect(result.trace.map((step) => step.kind)).toEqual(['move', 'jump', 'move', 'move']);
   });
 });

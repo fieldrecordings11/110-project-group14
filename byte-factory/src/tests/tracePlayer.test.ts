@@ -12,6 +12,9 @@ class FakeView implements RobotView {
     this.calls.push(`move ${to.x},${to.y}`);
     if (this.hold) await this.hold;
   }
+  async jumpTo(to: Position): Promise<void> {
+    this.calls.push(`jump ${to.x},${to.y}`);
+  }
   async bump(direction: Direction): Promise<void> {
     this.calls.push(`bump ${direction}`);
   }
@@ -37,6 +40,15 @@ describe('TracePlayer', () => {
     expect(result).toBe('finished');
     expect(view.calls).toEqual(['reset 0,0', 'move 1,0', 'move 1,1', 'bump down']);
     expect(steps).toEqual(['a', 'b', 'c']);
+  });
+
+  it('plays jump steps with jumpTo', async () => {
+    const view = new FakeView();
+    const jumpTrace: TraceStep[] = [
+      { kind: 'jump', blockId: 'a', direction: 'right', from: { x: 0, y: 0 }, to: { x: 2, y: 0 } },
+    ];
+    await new TracePlayer(view).play(jumpTrace, { x: 0, y: 0 });
+    expect(view.calls).toEqual(['reset 0,0', 'jump 2,0']);
   });
 
   it('stops part-way when stop() is called', async () => {

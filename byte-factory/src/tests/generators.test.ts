@@ -74,6 +74,17 @@ describe('Blockly Code Generation', () => {
       const code = javascriptGenerator.blockToCode(block);
       expect(code).toBe('move(3);\n');
     });
+
+    it.each([
+      ['jump_up', 'jump(0);\n'],
+      ['jump_down', 'jump(1);\n'],
+      ['jump_right', 'jump(2);\n'],
+      ['jump_left', 'jump(3);\n'],
+    ])('should generate correct code for %s', (type, expected) => {
+      const block = workspace.newBlock(type);
+      const code = javascriptGenerator.blockToCode(block);
+      expect(code).toBe(expected);
+    });
   });
 
   describe('Sensor Blocks', () => {
@@ -99,6 +110,17 @@ describe('Blockly Code Generation', () => {
       const block = workspace.newBlock('path_clear_left');
       const codeTuple = javascriptGenerator.blockToCode(block) as [string, number];
       expect(codeTuple[0]).toBe('checkClear(3)');
+    });
+
+    it.each([
+      ['puddle_up', 'checkPuddle(0)'],
+      ['puddle_down', 'checkPuddle(1)'],
+      ['puddle_right', 'checkPuddle(2)'],
+      ['puddle_left', 'checkPuddle(3)'],
+    ])('should generate correct code for %s', (type, expected) => {
+      const block = workspace.newBlock(type);
+      const codeTuple = javascriptGenerator.blockToCode(block) as [string, number];
+      expect(codeTuple[0]).toBe(expected);
     });
 
     it('should generate correct code for is_holding_item', () => {
