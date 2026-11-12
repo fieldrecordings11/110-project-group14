@@ -5,9 +5,16 @@
     <title>Byte Factory</title>
   </head>
   <body>
+    <header id="gameHeader">
+      <h1>Byte Factory</h1>
+      <p>Move the robot to the goal.</p>
+    </header>
     <div id="pageContainer">
-      <div id="outputPane">
-        <div id="gameCanvas"></div>
+      <div id="blocklyDiv"></div>
+      <div id="outputPanel">
+        <div id="gamePreview">
+          <div id="gameCanvas"></div>
+        </div>
         <div id="controls">
           <button id="runButton">Run</button>
           <button id="resetButton">Reset</button>
@@ -15,7 +22,6 @@
         <p id="status"></p>
         <pre id="generatedCode"><code></code></pre>
       </div>
-      <div id="blocklyDiv"></div>
     </div>
   </body>
 </html>
