@@ -41,7 +41,25 @@ const resetButton = document.getElementById('resetButton') as HTMLButtonElement 
 if (!blocklyDiv || !gameDiv) {
   throw new Error(`div with id 'blocklyDiv' or 'gameCanvas' not found`);
 }
-const ws = Blockly.inject(blocklyDiv, {toolbox});
+
+const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
+  name: 'gameTheme',
+  base: Blockly.Themes.Classic,
+  componentStyles: {
+    workspaceBackgroundColour: '#07100c',
+    toolboxBackgroundColour: '#0e1711',
+    toolboxForegroundColour: '#e5eee4',
+    flyoutBackgroundColour: '#17231b',
+    flyoutForegroundColour: '#e5eee4',
+    flyoutOpacity: 1,
+    scrollbarColour: '#56616e',
+  },
+});
+
+const ws = Blockly.inject(blocklyDiv, {
+  toolbox: toolbox,
+  theme: gameTheme,
+});
 
 const view = new GridView(gameDiv, demoMap);
 const player = new TracePlayer(view);
