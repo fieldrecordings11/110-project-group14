@@ -26,25 +26,50 @@ export class LevelLoader {
     /**
      * Resets the workspace for the given level: clear it, load level.startState,
      * clear the undo stack, then make it the current level.
-     * Drawing level.map and the toolbox happen outside the loader (index.ts).
      * @returns the loaded level
      */
     loadLevel(level: Level): Level {
-        throw new Error('Not yet implemented');
+        this.workspace.clear();
+
+        if (level.startState) {
+            Blockly.serialization.workspaces.load(level.startState, this.workspace);
+        }
+
+        this.workspace.clearUndo();
+
+        this.current = level;
+
+        return level;
     }
 
     /**
      * @returns the first level, or undefined if there are no levels
      */
     loadFirst(): Level | undefined {
-        throw new Error('Not yet implemented');
+        const first = this.registry.first();
+
+        if (first) {
+            return this.loadLevel(first);
+        }
+
+        return first;
     }
 
     /**
-     * @returns the level after the current one, or undefined after the last level
+     * @returns the level after the current one, the first level if none is loaded yet, or undefined after the last level
      */
     loadNext(): Level | undefined {
-        throw new Error('Not yet implemented');
+        if (!this.current) {
+            return this.loadFirst();
+        }
+
+        const next = this.registry.next(this.current.id);
+
+        if (!next) {
+            return undefined;
+        }
+
+        return this.loadLevel(next);
     }
 
     /**
@@ -52,6 +77,10 @@ export class LevelLoader {
      * @returns the current level
      */
     resetLevel(): Level {
-        throw new Error('Not yet implemented');
+        if (!this.current) {
+            throw new Error('No level loaded yet');
+        }
+
+        return this.loadLevel(this.current);
     }
 }
