@@ -35,7 +35,16 @@ describe('Block Definitions', () => {
   });
 
   describe('Movement Blocks', () => {
-    const movementTypes = ['move_up', 'move_down', 'move_right', 'move_left'];
+    const movementTypes = [
+      'move_up',
+      'move_down',
+      'move_right',
+      'move_left',
+      'jump_up',
+      'jump_down',
+      'jump_right',
+      'jump_left',
+    ];
 
     movementTypes.forEach((type) => {
       it(`should have previous and next connections for ${type}`, () => {
@@ -54,6 +63,10 @@ describe('Block Definitions', () => {
       'path_clear_left',
       'path_clear_up',
       'path_clear_down',
+      'puddle_right',
+      'puddle_left',
+      'puddle_up',
+      'puddle_down',
       'is_holding_item',
       'on_finish_grid'
     ];

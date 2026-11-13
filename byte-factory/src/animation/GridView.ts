@@ -6,11 +6,19 @@ const COLORS = {
   floor: '#2b3a33',
   floorLine: '#1d2823',
   wall: '#56616e',
+  puddle: '#3a8fd9',
   goal: '#f1c40f',
   robot: '#5fd3e6',
   robotOutline: '#14181f',
   bump: '#e74c3c',
 };
+
+const DEFAULT_TILE = 48;
+
+/** Largest tile size (up to the default) that fits the whole grid in maxWidth pixels. */
+export function fitTileSize(map: GridMap, maxWidth: number): number {
+  return Math.min(DEFAULT_TILE, Math.floor(maxWidth / map.width));
+}
 
 /** Draws the grid and the robot with Konva, and animates the robot for TracePlayer. */
 export class GridView implements RobotView {
@@ -22,7 +30,7 @@ export class GridView implements RobotView {
   constructor(
     container: HTMLDivElement,
     private readonly map: GridMap,
-    private readonly tile = 48,
+    private readonly tile = DEFAULT_TILE,
   ) {
     this.stage = new Konva.Stage({
       container,
@@ -57,6 +65,16 @@ export class GridView implements RobotView {
 
   moveTo(to: Position, durationMs: number): Promise<void> {
     return this.tween({ ...this.toPixels(to), duration: durationMs / 1000 });
+  }
+
+  /** Hop in an arc: up to a point above the middle tile, then down onto the target. */
+  async jumpTo(to: Position, durationMs: number): Promise<void> {
+    const from = this.robot.position();
+    const end = this.toPixels(to);
+    const half = durationMs / 2000;
+
+    await this.tween({ x: (from.x + end.x) / 2, y: (from.y + end.y) / 2 - this.tile * 0.5, duration: half });
+    await this.tween({ ...end, duration: half });
   }
 
   /** Lunge a quarter tile toward the obstacle, flash red, then settle back. */
@@ -97,6 +115,18 @@ export class GridView implements RobotView {
           }),
         );
       }
+    }
+    for (const puddle of map.puddles ?? []) {
+      const { x, y } = this.toPixels(puddle);
+      this.layer.add(
+        new Konva.Ellipse({
+          x: x + tile / 2,
+          y: y + tile / 2,
+          radiusX: tile * 0.38,
+          radiusY: tile * 0.26,
+          fill: COLORS.puddle,
+        }),
+      );
     }
     const goal = this.toPixels(map.goal);
     this.layer.add(

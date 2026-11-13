@@ -40,3 +40,32 @@ forBlock['move_left'] = function (
 ) {
     return `move(${Direction.LEFT});\n`;
 };
+
+// jump() moves two tiles in one go, over the tile in between (used for puddles)
+forBlock['jump_up'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return `jump(${Direction.UP});\n`;
+};
+
+forBlock['jump_down'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return `jump(${Direction.DOWN});\n`;
+};
+
+forBlock['jump_right'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return `jump(${Direction.RIGHT});\n`;
+};
+
+forBlock['jump_left'] = function (
+    block: Blockly.Block,
+    generator: Blockly.CodeGenerator,
+) {
+    return `jump(${Direction.LEFT});\n`;
+};

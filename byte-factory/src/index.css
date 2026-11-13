@@ -97,3 +97,13 @@ code {
 #backButton {
   cursor: pointer;
 }
+
+#levelInstructions {
+  margin: 0 0 0.25rem;
+  line-height: 1.4;
+}
+
+#blockLimit {
+  margin: 0 0 0.75rem;
+  font-weight: bold;
+}
