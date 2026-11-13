@@ -9,6 +9,7 @@ const level: Level = {
     allowedBlocks: ['text', 'logic_boolean'],
     blockLimit: 2,
     instructions: 'Test level',
+    map: { width: 3, height: 3, start: { x: 0, y: 0 }, goal: { x: 2, y: 2 }, walls: [] },
 };
 
 describe('Validator', () => {
