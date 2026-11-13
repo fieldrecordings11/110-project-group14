@@ -1,14 +1,12 @@
 import Konva from 'konva';
 import { Direction, GridMap, Position } from '../interpreter/types';
 import { RobotView } from './TracePlayer';
+import floorUrl from '../../assets/byte-floor-24.png';
+import wallUrl from '../../assets/byte-wall-24.png';
+import goalUrl from '../../assets/byte-goal-marker-24.png';
+import robotUrl from '../../assets/byte-robot-24.png';
 
 const COLORS = {
-  floor: '#2b3a33',
-  floorLine: '#1d2823',
-  wall: '#56616e',
-  goal: '#f1c40f',
-  robot: '#5fd3e6',
-  robotOutline: '#14181f',
   bump: '#e74c3c',
 };
 
@@ -17,7 +15,11 @@ export class GridView implements RobotView {
   private readonly stage: Konva.Stage;
   private readonly layer = new Konva.Layer();
   private readonly robot = new Konva.Group();
-  private readonly robotBody: Konva.Rect;
+  private readonly collisionOverlay: Konva.Rect;
+  private readonly floorImage = new Image();
+  private readonly wallImage = new Image();
+  private readonly goalImage = new Image();
+  private readonly robotImage = new Image();
 
   constructor(
     container: HTMLDivElement,
@@ -30,29 +32,60 @@ export class GridView implements RobotView {
       height: map.height * tile,
     });
     this.stage.add(this.layer);
+
+    this.layer.imageSmoothingEnabled(false);
+
+    this.floorImage.onload = () => {
+      this.layer.batchDraw();
+    }
+
+    this.floorImage.src = floorUrl;
+
+    this.wallImage.onload = () => {
+      this.layer.batchDraw();
+    };
+
+    this.wallImage.src = wallUrl;
+
+    this.goalImage.onload = () => {
+      this.layer.batchDraw();
+    };
+
+    this.goalImage.src = goalUrl;
+
+    this.robotImage.onload = () => {
+      this.layer.batchDraw();
+    }
+
+    this.robotImage.src = robotUrl;
+
     this.drawGrid();
 
-    const pad = tile * 0.15;
-    this.robotBody = new Konva.Rect({
-      x: pad,
-      y: pad,
-      width: tile - pad * 2,
-      height: tile - pad * 2,
-      fill: COLORS.robot,
-      stroke: COLORS.robotOutline,
-      strokeWidth: 3,
-      cornerRadius: 4,
+    const robotSprite = new Konva.Image({
+      x: 0,
+      y: 0,
+      width: tile,
+      height: tile,
+      image: this.robotImage,
     });
-    const eye = (x: number) =>
-      new Konva.Rect({ x, y: tile * 0.35, width: tile * 0.12, height: tile * 0.12, fill: COLORS.robotOutline });
-    this.robot.add(this.robotBody, eye(tile * 0.32), eye(tile * 0.56));
+
+    this.collisionOverlay = new Konva.Rect({
+      x: 0,
+      y: 0,
+      width: tile,
+      height: tile,
+      fill: COLORS.bump,
+      opacity: 0,
+    });
+
+    this.robot.add(robotSprite, this.collisionOverlay);
     this.layer.add(this.robot);
     this.reset(map.start);
   }
 
   reset(position: Position): void {
     this.robot.position(this.toPixels(position));
-    this.robotBody.fill(COLORS.robot);
+    this.collisionOverlay.opacity(0);
   }
 
   moveTo(to: Position, durationMs: number): Promise<void> {
@@ -71,7 +104,7 @@ export class GridView implements RobotView {
     }[direction];
     const half = durationMs / 2000;
 
-    this.robotBody.fill(COLORS.bump);
+    this.collisionOverlay.opacity(0.5);
     await this.tween({ x: home.x + offset.x, y: home.y + offset.y, duration: half });
     await this.tween({ x: home.x, y: home.y, duration: half });
   }
@@ -85,28 +118,37 @@ export class GridView implements RobotView {
     for (let y = 0; y < map.height; y++) {
       for (let x = 0; x < map.width; x++) {
         const isWall = map.walls.some((w) => w.x === x && w.y === y);
-        this.layer.add(
-          new Konva.Rect({
-            x: x * tile,
-            y: y * tile,
-            width: tile,
-            height: tile,
-            fill: isWall ? COLORS.wall : COLORS.floor,
-            stroke: COLORS.floorLine,
-            strokeWidth: 1,
-          }),
-        );
+        if (isWall) {
+          this.layer.add(
+              new Konva.Image({
+                x: x * tile,
+                y: y * tile,
+                width: tile,
+                height: tile,
+                image: this.wallImage,
+              }),
+            );
+        } else {
+          this.layer.add(
+            new Konva.Image({
+              x: x * tile,
+              y: y * tile,
+              width: tile,
+              height: tile,
+              image: this.floorImage,
+            }),
+          );
+        }
       }
     }
     const goal = this.toPixels(map.goal);
     this.layer.add(
-      new Konva.Star({
-        x: goal.x + tile / 2,
-        y: goal.y + tile / 2,
-        numPoints: 5,
-        innerRadius: tile * 0.15,
-        outerRadius: tile * 0.32,
-        fill: COLORS.goal,
+      new Konva.Image({
+        x: goal.x,
+        y: goal.y,
+        width: tile,
+        height: tile,
+        image: this.goalImage,
       }),
     );
   }

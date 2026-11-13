@@ -26,6 +26,11 @@ const config = {
         test: /\.css$/i,
         use: ['style-loader', 'css-loader'],
       },
+      {
+        // Include imported PNGs in the build and provide their URLs
+        test: /\.png$/i,
+        type: 'asset/resource',
+      }
     ],
   },
   resolve: {
