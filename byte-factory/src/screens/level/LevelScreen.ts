@@ -9,8 +9,8 @@ import { sensorBlock as sensorGeneration } from '../../generators/sensorGenerati
 import { generateCode, runCode } from '../../interpreter/interpreter';
 import { levelRegistry } from '../../levels';
 import { LevelLoader } from '../../levels/loader';
+import { buildToolbox } from '../../levels/toolbox';
 import { Level } from '../../levels/types';
-import { toolbox } from '../../toolbox';
 import { Validator } from '../../validator/validator';
 import '../../blocks/movement';
 import '../../blocks/actions';
@@ -67,7 +67,7 @@ export class LevelScreen implements Screen {
     find<HTMLElement>('levelTitle').textContent = level.title;
     find<HTMLButtonElement>('backButton').addEventListener('click', this.options.onExit);
 
-    const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), { toolbox });
+    const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), { toolbox: buildToolbox(level.allowedBlocks) });
     // Load the level's starting blocks, if any, with a clean undo history.
     new LevelLoader(ws, levelRegistry).loadLevel(level);
     const view = new GridView(find<HTMLDivElement>('gameCanvas'), map);
