@@ -1,7 +1,16 @@
+/**
+ * @license
+ * Copyright 2023 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import * as Blockly from 'blockly/core';
 
 const storageKey = (levelId: string) => `mainWorkspace_${levelId}`;
 
+/**
+ * Saves the current Blockly workspace state for a specific level to localStorage.
+ */
 export const save = (workspace: Blockly.Workspace, levelId: string): void => {
   try {
     const data = Blockly.serialization.workspaces.save(workspace);
@@ -11,6 +20,10 @@ export const save = (workspace: Blockly.Workspace, levelId: string): void => {
   }
 };
 
+/**
+ * Loads a saved workspace state for a specific level from localStorage.
+ * @returns true if a save existed and was loaded; false if no save was found or parsing failed.
+ */
 export const load = (workspace: Blockly.Workspace, levelId: string): boolean => {
   const raw = window.localStorage?.getItem(storageKey(levelId));
   if (!raw) {
@@ -28,6 +41,9 @@ export const load = (workspace: Blockly.Workspace, levelId: string): boolean => 
   }
 };
 
+/**
+ * Removes the saved workspace state for a specific level from localStorage.
+ */
 export const clearSave = (levelId: string): void => {
   window.localStorage?.removeItem(storageKey(levelId));
 };
