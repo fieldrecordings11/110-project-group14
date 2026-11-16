@@ -1,12 +1,15 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-// Base config that applies to either development or production mode.
+/** @type {import('webpack').Configuration & { devServer?: import('webpack-dev-server').Configuration }} */
 const config = {
-  entry: './src/index.ts',
+  entry: {
+    main: './src/index.ts',
+    hangman: './src/hangman/main.ts',
+  },
   output: {
-    // Compile the source files into a bundle.
-    filename: 'bundle.js',
+    // Compile source files into separate bundles using the entry keys ([name])
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
   },
@@ -32,11 +35,17 @@ const config = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   plugins: [
-    // Generate the HTML index page based on our template.
-    // This will output the same index page with the bundle we
-    // created above added in a script tag.
+    // Generate the main Blockly puzzle page
     new HtmlWebpackPlugin({
       template: 'src/index.html',
+      filename: 'index.html',
+      chunks: ['main'],
+    }),
+    // Generate the independent Hangman minigame page
+    new HtmlWebpackPlugin({
+      template: 'src/hangman.html',
+      filename: 'hangman.html',
+      chunks: ['hangman'],
     }),
   ],
 };
@@ -48,8 +57,6 @@ module.exports = (env, argv) => {
     config.output.path = path.resolve(__dirname, 'build');
 
     // Generate source maps for our code for easier debugging.
-    // Not suitable for production builds. If you want source maps in
-    // production, choose a different one from https://webpack.js.org/configuration/devtool
     config.devtool = 'eval-cheap-module-source-map';
 
     // Include the source maps for Blockly for easier debugging Blockly code.
@@ -60,7 +67,6 @@ module.exports = (env, argv) => {
     });
 
     // Ignore spurious warnings from source-map-loader
-    // It can't find source maps for some Closure modules and that is expected
     config.ignoreWarnings = [/Failed to parse source map.*blockly/];
   }
   return config;
