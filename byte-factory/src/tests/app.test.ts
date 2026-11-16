@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { Screen } from '../app/Screen';
 import { ScreenManager } from '../app/ScreenManager';
-import { ROADMAP_ENTRIES, RoadmapEntry, toRoadmapLevels } from '../app/roadmapEntries';
+import { ROADMAP_ENTRIES, RoadmapEntry, getEntryLevel, toRoadmapLevels } from '../app/roadmapEntries';
+import { levels } from '../levels/data';
 import { demoLevel } from '../levels/demo';
 
 /** Records mount/unmount calls into a shared log. */
@@ -43,6 +44,11 @@ describe('toRoadmapLevels', () => {
     expect(toRoadmapLevels(entries, ['a']).map((l) => l.status)).toEqual(['completed', 'available', 'locked']);
   });
 
+  it("shows a level stop with its level's title", () => {
+    const withLevel: RoadmapEntry[] = [{ kind: 'level', id: 'a', levelId: demoLevel.id }];
+    expect(toRoadmapLevels(withLevel, [])[0].title).toBe(demoLevel.title);
+  });
+
   it('draws the first stop at the bottom of the map', () => {
     const ys = toRoadmapLevels(entries, []).map((l) => l.y);
     expect(ys[0]).toBeGreaterThan(ys[1]);
@@ -60,5 +66,28 @@ describe('ROADMAP_ENTRIES', () => {
   it('has unique ids', () => {
     const ids = ROADMAP_ENTRIES.map((e) => e.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('only points to levels that exist', () => {
+    for (const entry of ROADMAP_ENTRIES) {
+      if (entry.kind === 'level') expect(() => getEntryLevel(entry.levelId)).not.toThrow();
+    }
+  });
+
+  it('includes every level', () => {
+    const onRoadmap = ROADMAP_ENTRIES.map((e) => (e.kind === 'level' ? e.levelId : undefined));
+    for (const level of levels) {
+      expect(onRoadmap).toContain(level.id);
+    }
+  });
+});
+
+describe('getEntryLevel', () => {
+  it('returns the level with the given id', () => {
+    expect(getEntryLevel(demoLevel.id)).toBe(demoLevel);
+  });
+
+  it('throws for an unknown id', () => {
+    expect(() => getEntryLevel('missing')).toThrow('Unknown level id: missing');
   });
 });

@@ -7,7 +7,8 @@ import { forBlock as moveGeneration } from '../../generators/moveGeneration';
 import { actionBlock as actionGeneration } from '../../generators/actionGeneration';
 import { sensorBlock as sensorGeneration } from '../../generators/sensorGeneration';
 import { generateCode, runCode } from '../../interpreter/interpreter';
-import { GridMap } from '../../interpreter/types';
+import { levelRegistry } from '../../levels';
+import { LevelLoader } from '../../levels/loader';
 import { Level } from '../../levels/types';
 import { toolbox } from '../../toolbox';
 import { Validator } from '../../validator/validator';
@@ -21,9 +22,7 @@ Object.assign(javascriptGenerator.forBlock, actionGeneration);
 Object.assign(javascriptGenerator.forBlock, sensorGeneration);
 
 export type LevelScreenOptions = {
-  title: string;
   level: Level;
-  map: GridMap;
   /** Called each time the robot reaches the goal. */
   onComplete: () => void;
   onExit: () => void;
@@ -57,17 +56,20 @@ export class LevelScreen implements Screen {
   constructor(private readonly options: LevelScreenOptions) {}
 
   mount(root: HTMLElement): void {
-    const { title, level, map } = this.options;
+    const { level } = this.options;
+    const { map } = level;
     root.innerHTML = TEMPLATE;
     const find = <T extends HTMLElement>(id: string) => root.querySelector(`#${id}`) as T;
 
     const codeEl = find<HTMLElement>('generatedCode').firstElementChild as HTMLElement;
     const statusEl = find<HTMLElement>('status');
     const runButton = find<HTMLButtonElement>('runButton');
-    find<HTMLElement>('levelTitle').textContent = title;
+    find<HTMLElement>('levelTitle').textContent = level.title;
     find<HTMLButtonElement>('backButton').addEventListener('click', this.options.onExit);
 
     const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), { toolbox });
+    // Load the level's starting blocks, if any, with a clean undo history.
+    new LevelLoader(ws, levelRegistry).loadLevel(level);
     const view = new GridView(find<HTMLDivElement>('gameCanvas'), map);
     const player = new TracePlayer(view);
     this.ws = ws;

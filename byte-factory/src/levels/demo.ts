@@ -17,6 +17,7 @@ export const demoMap: GridMap = {
 /** Temporary level for trying the interpreter until real levels exist. */
 export const demoLevel: Level = {
   id: 'demo',
+  title: 'Demo level',
   allowedBlocks: ['move_up', 'move_down', 'move_left', 'move_right', 'controls_repeat_ext', 'math_number'],
   blockLimit: 20,
   instructions: 'demo-level',
