@@ -35,7 +35,7 @@ export class MenuScreenView implements View {
 
 		// Stacked buttons
 		this.group.add(
-			this.createButton("PLAY", buttonX, startY, buttonWidth, buttonHeight, onStartClick)
+			this.createButton("MAIN GAME", buttonX, startY, buttonWidth, buttonHeight, onStartClick)
 		);
 		this.group.add(
 			this.createButton("HANGMAN", buttonX, startY + (buttonHeight + buttonGap), buttonWidth, buttonHeight, onHangmanClick)
