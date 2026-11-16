@@ -46,6 +46,12 @@ code {
   min-width: 0;
 }
 
+#blocklyDiv .blocklyToolboxCategoryLabel {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+}
+
 #outputPanel {
   display: flex;
   flex-direction: column;
@@ -101,7 +107,7 @@ code {
 
 #gamePreview {
   background-color: #0e1711;
-  border: 3px solid white;
+  border: 3px solid #38483e;
   padding: 16px;
 }
 
@@ -158,5 +164,18 @@ code {
 }
 
 #backButton {
+  background-color: #56616e;
+  color: #e5eee4;
+  border: 3px solid #17231b;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
+  box-shadow: 0 4px 0 #17231b;
+}
+
+#backButton:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #17231b;
 }

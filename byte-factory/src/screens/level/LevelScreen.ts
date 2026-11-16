@@ -32,6 +32,11 @@ export type LevelScreenOptions = {
 const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
   name: 'gameTheme',
   base: Blockly.Themes.Classic,
+  fontStyle: {
+    family: 'monospace',
+    size: 12,
+    weight: 'bold',
+  },
   componentStyles: {
     workspaceBackgroundColour: '#07100c',
     toolboxBackgroundColour: '#0e1711',
