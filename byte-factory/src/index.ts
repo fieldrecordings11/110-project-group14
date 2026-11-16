@@ -7,23 +7,23 @@
 import * as Blockly from 'blockly';
 
 import {forBlock as moveGeneration} from './generators/moveGeneration';
-import {actionBlock as actionGeneration} from './generators/actionGeneration'
-import { sensorBlock as sensorGeneration } from './generators/sensorGeneration';
+import {actionBlock as actionGeneration} from './generators/actionGeneration';
+import {sensorBlock as sensorGeneration} from './generators/sensorGeneration';
 
-import {JavascriptGenerator, javascriptGenerator} from 'blockly/javascript';
-import {save, load} from './serialization';
+import {javascriptGenerator} from 'blockly/javascript';
+import {save, load, clearSave} from './serialization';
 import {toolbox} from './toolbox';
 import './index.css';
+
 import './blocks/movement';
+import './blocks/actions';
+import './blocks/sensors';
+
 import {generateCode, runCode} from './interpreter/interpreter';
 import {GridView} from './animation/GridView';
 import {TracePlayer} from './animation/TracePlayer';
 import {Validator} from './validator/validator';
 import {demoLevel, demoMap} from './levels/demo';
-
-import './blocks/movement';
-import './blocks/actions';
-import './blocks/sensors';
 
 // Register the blocks and generator with Blockly
 Object.assign(javascriptGenerator.forBlock, moveGeneration);
@@ -44,12 +44,13 @@ if (!blocklyDiv || !gameDiv) {
 
 const ws = Blockly.inject(blocklyDiv, {toolbox});
 
-const currLevel = demoLevel.id ?? 'demo';
-load(ws, currLevel);
-
 const view = new GridView(gameDiv, demoMap);
 const player = new TracePlayer(view);
 const validator = new Validator();
+
+// Tracks active level and prevents auto-save from firing mid-load/switch
+let activeLevel = demoLevel;
+let isLoadingLevel = false;
 
 const setStatus = (text: string, tone: 'info' | 'success' | 'error' = 'info') => {
   if (!statusEl) return;
@@ -62,10 +63,32 @@ const showCode = () => {
   if (codeDiv) codeDiv.textContent = javascriptGenerator.workspaceToCode(ws);
 };
 
+// Loads a level into the workspace, preferring saved blocks over default startState
+const loadLevelWorkspace = (level: typeof demoLevel, useSaved = true) => {
+  isLoadingLevel = true;
+  try {
+    player.stop();
+    ws.highlightBlock(null);
+    ws.clear();
+
+    const loadedFromSave = useSaved && load(ws, level.id ?? 'demo');
+    if (!loadedFromSave && 'startState' in level && level.startState) {
+      Blockly.serialization.workspaces.load(level.startState as object, ws);
+    }
+
+    ws.clearUndo();
+    activeLevel = level;
+    showCode();
+    setStatus('Press Run to start.');
+  } finally {
+    isLoadingLevel = false;
+  }
+};
+
 // Validate -> interpret into a trace -> animate the trace, highlighting each block.
 const run = async () => {
   player.stop();
-  const validation = validator.validate(ws, demoLevel);
+  const validation = validator.validate(ws, activeLevel);
   if (!validation.ok) {
     if (validation.blockId) ws.getBlockById(validation.blockId)?.select();
     setStatus(validation.message, 'error');
@@ -86,6 +109,7 @@ const run = async () => {
   setStatus(result.message, result.outcome === 'reached_goal' ? 'success' : 'error');
 };
 
+// Resets the robot/animation on the grid (keeps player's blocks intact)
 const reset = () => {
   player.stop();
   ws.highlightBlock(null);
@@ -94,19 +118,28 @@ const reset = () => {
   setStatus('Press Run to start.');
 };
 
+const resetBlocks = () => {
+  const levelId = activeLevel.id ?? 'demo';
+  clearSave(levelId);
+  loadLevelWorkspace(activeLevel, false);
+};
+
 runButton?.addEventListener('click', () => void run());
 resetButton?.addEventListener('click', reset);
 
-if (ws) {
+// Keep the generated code panel up to date AND auto-save
+ws.addChangeListener((e: Blockly.Events.Abstract) => {
+  if (
+    isLoadingLevel ||
+    e.isUiEvent ||
+    e.type === Blockly.Events.FINISHED_LOADING ||
+    ws.isDragging()
+  ) {
+    return;
+  }
   showCode();
-  setStatus('Press Run to start.');
+  save(ws, activeLevel.id ?? 'demo');
+});
 
-  // Keep the generated code panel up to date AND auto-save
-  ws.addChangeListener((e: Blockly.Events.Abstract) => {
-    if (e.isUiEvent || e.type == Blockly.Events.FINISHED_LOADING || ws.isDragging()) {
-      return;
-    }
-    showCode();
-    save(ws, currLevel);
-  });
-}
+// Initial level boot
+loadLevelWorkspace(demoLevel);
