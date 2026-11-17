@@ -30,26 +30,53 @@ export type LevelScreenOptions = {
   onExit: () => void;
 };
 
+const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
+  name: 'gameTheme',
+  base: Blockly.Themes.Classic,
+  fontStyle: {
+    family: 'monospace',
+    size: 12,
+    weight: 'bold',
+  },
+  componentStyles: {
+    workspaceBackgroundColour: '#07100c',
+    toolboxBackgroundColour: '#0e1711',
+    toolboxForegroundColour: '#e5eee4',
+    flyoutBackgroundColour: '#17231b',
+    flyoutForegroundColour: '#e5eee4',
+    flyoutOpacity: 1,
+    scrollbarColour: '#56616e',
+  },
+});
+
 const TEMPLATE = `
-  <div id="pageContainer">
-    <div id="outputPane">
+  <div class="level-screen">
+    <header id="gameHeader">
       <div id="levelHeader">
         <button id="backButton" type="button">← Roadmap</button>
-        <h2 id="levelTitle"></h2>
+        <h1 id="levelTitle"></h1>
       </div>
-      <div id="gameCanvas"></div>
-      <div id="controls">
-        <button id="runButton" type="button">Run</button>
-        <button id="resetButton" type="button">Reset Robot</button>
-        <button id="resetBlocksButton" type="button">Reset Blocks</button>
-        <button id="exportButton" type="button">Export Save</button>
-        <button id="importButton" type="button">Import Save</button>
-        <input id="importFileInput" type="file" accept=".json,application/json" hidden />
+      <p>Move the robot to the goal.</p>
+    </header>
+    <div id="pageContainer">
+      <div id="blocklyDiv"></div>
+      <div id="outputPanel">
+        <div id="gamePreview">
+          <div id="gameCanvas"></div>
+        </div>
+        <div id="controls">
+          <button id="runButton" type="button">Run</button>
+          <button id="resetButton" type="button">Reset Robot</button>
+          <button id="resetBlocksButton" type="button">Reset Blocks</button>
+          <button id="exportButton" type="button">Export Save</button>
+          <button id="importButton" type="button">Import Save</button>
+          <input id="importFileInput" type="file" accept=".json,application/json" hidden />
+        </div>
+        <p id="status"></p>
+        <pre id="generatedCode"><code></code></pre>
+        main
       </div>
-      <p id="status"></p>
-      <pre id="generatedCode"><code></code></pre>
     </div>
-    <div id="blocklyDiv"></div>
   </div>`;
 
 /** A Blockly level: validate -> interpret into a trace -> animate the trace on the grid. */
@@ -74,7 +101,10 @@ export class LevelScreen implements Screen {
     find<HTMLElement>('levelTitle').textContent = title;
     find<HTMLButtonElement>('backButton').addEventListener('click', this.options.onExit);
 
-    const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), { toolbox });
+    const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), {
+      toolbox: toolbox,
+      theme: gameTheme,
+    });
     const view = new GridView(find<HTMLDivElement>('gameCanvas'), map);
     const player = new TracePlayer(view);
     this.ws = ws;
