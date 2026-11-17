@@ -33,6 +33,22 @@ export const toolbox = {
           kind: 'block',
           type: 'move_up',
         },
+        {
+          kind: 'block',
+          type: 'jump_down',
+        },
+        {
+          kind: 'block',
+          type: 'jump_right',
+        },
+        {
+          kind: 'block',
+          type: 'jump_left',
+        },
+        {
+          kind: 'block',
+          type: 'jump_up',
+        },
       ]
     },
     {
@@ -77,6 +93,22 @@ export const toolbox = {
         },
         {
           kind: 'block',
+          type: 'puddle_up',
+        },
+        {
+          kind: 'block',
+          type: 'puddle_down',
+        },
+        {
+          kind: 'block',
+          type: 'puddle_right',
+        },
+        {
+          kind: 'block',
+          type: 'puddle_left',
+        },
+        {
+          kind: 'block',
           type: 'is_holding_item',
         },
         {
@@ -93,6 +125,14 @@ export const toolbox = {
         {
           kind: 'block',
           type: 'controls_if',
+        },
+        {
+          // if / else, ready-made so players don't have to add "else" with the gear icon
+          kind: 'block',
+          type: 'controls_if',
+          extraState: {
+            hasElse: true,
+          },
         },
         {
           kind: 'block',
@@ -142,6 +182,9 @@ export const toolbox = {
         {
           kind: 'block',
           type: 'controls_whileUntil',
+          fields: {
+            MODE: 'UNTIL',
+          },
         },
         {
           kind: 'block',
@@ -683,3 +726,19 @@ export const toolbox = {
     // },
   ],
 };
+
+/**
+ * The toolbox for one level: only the blocks the level allows, with empty
+ * categories removed. Keeps players from dragging in blocks the validator rejects.
+ */
+export function toolboxFor(allowedBlocks: readonly string[]) {
+  return {
+    ...toolbox,
+    contents: toolbox.contents
+      .map((category) => ({
+        ...category,
+        contents: category.contents.filter((item) => allowedBlocks.indexOf(item.type) !== -1),
+      }))
+      .filter((category) => category.contents.length > 0),
+  };
+}

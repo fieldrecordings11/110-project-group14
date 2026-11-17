@@ -3,6 +3,7 @@ import { Direction, Position, TraceStep } from '../interpreter/types';
 /** What the player needs from a view. GridView implements this with Konva. */
 export interface RobotView {
   moveTo(to: Position, durationMs: number): Promise<void>;
+  jumpTo(to: Position, durationMs: number): Promise<void>;
   bump(direction: Direction, durationMs: number): Promise<void>;
   reset(position: Position): void;
 }
@@ -32,8 +33,17 @@ export class TracePlayer {
       if (runId !== this.runId) return 'stopped';
       const step = trace[i];
       options.onStep?.(step, i);
-      if (step.kind === 'move') await this.view.moveTo(step.to, stepMs);
-      else await this.view.bump(step.direction, stepMs);
+      switch (step.kind) {
+        case 'move':
+          await this.view.moveTo(step.to, stepMs);
+          break;
+        case 'jump':
+          await this.view.jumpTo(step.to, stepMs);
+          break;
+        case 'bump':
+          await this.view.bump(step.direction, stepMs);
+          break;
+      }
     }
     return runId === this.runId ? 'finished' : 'stopped';
   }

@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import type { Screen } from '../../app/Screen';
-import { GridView } from '../../animation/GridView';
+import { GridView, fitTileSize } from '../../animation/GridView';
 import { TracePlayer } from '../../animation/TracePlayer';
 import { forBlock as moveGeneration } from '../../generators/moveGeneration';
 import { actionBlock as actionGeneration } from '../../generators/actionGeneration';
@@ -10,7 +10,7 @@ import { generateCode, runCode } from '../../interpreter/interpreter';
 import { GridMap } from '../../interpreter/types';
 import { Level } from '../../levels/types';
 import { SaveController } from '../../saves/saveController';
-import { toolbox } from '../../toolbox';
+import { toolboxFor } from '../../toolbox';
 import { Validator } from '../../validator/validator';
 import '../../blocks/movement';
 import '../../blocks/actions';
@@ -56,7 +56,8 @@ const TEMPLATE = `
         <button id="backButton" type="button">← Roadmap</button>
         <h1 id="levelTitle"></h1>
       </div>
-      <p>Move the robot to the goal.</p>
+      <p id="levelInstructions"></p>
+      <p id="blockLimit"></p>
     </header>
     <div id="pageContainer">
       <div id="blocklyDiv"></div>
@@ -74,7 +75,6 @@ const TEMPLATE = `
         </div>
         <p id="status"></p>
         <pre id="generatedCode"><code></code></pre>
-        main
       </div>
     </div>
   </div>`;
@@ -99,13 +99,18 @@ export class LevelScreen implements Screen {
     const runButton = find<HTMLButtonElement>('runButton');
     const importFileInput = find<HTMLInputElement>('importFileInput');
     find<HTMLElement>('levelTitle').textContent = title;
+    find<HTMLElement>('levelInstructions').textContent = level.instructions;
+    find<HTMLElement>('blockLimit').textContent = `Block limit: ${level.blockLimit}`;
     find<HTMLButtonElement>('backButton').addEventListener('click', this.options.onExit);
 
     const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), {
-      toolbox: toolbox,
+      toolbox: toolboxFor(level.allowedBlocks),
       theme: gameTheme,
     });
-    const view = new GridView(find<HTMLDivElement>('gameCanvas'), map);
+    // Shrink the tiles so wide grids fit the panel. Only the width is checked: the panel
+    // scrolls vertically, so a tall grid still fits (no current level is taller than 6 tiles).
+    const canvas = find<HTMLDivElement>('gameCanvas');
+    const view = new GridView(canvas, map, fitTileSize(map, canvas.clientWidth));
     const player = new TracePlayer(view);
     this.ws = ws;
     this.view = view;

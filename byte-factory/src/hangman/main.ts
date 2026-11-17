@@ -6,6 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Instantiate the minigame (no container needed in the constructor)
   const hangmanGame = new HangmanMinigame();
 
-  // 2. Open it with a level ID (e.g., 'demo')
-  hangmanGame.open('demo');
+  // 2. Open it with a level ID (e.g., 'sequencing')
+  hangmanGame.open('sequencing');
 });
