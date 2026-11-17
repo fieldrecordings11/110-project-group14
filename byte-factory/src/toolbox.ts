@@ -15,7 +15,7 @@ export const toolbox = {
     {
       kind: 'category',
       name: 'Movement',
-      colour: 230,
+      colour: '#405DE6',
       contents: [
         {
           kind: 'block',
