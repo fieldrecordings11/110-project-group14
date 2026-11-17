@@ -7,8 +7,8 @@ export class MenuScreenView implements View {
 
 	constructor(
 		onStartClick: () => void,
-		onHangmanClick: () => void,
-		onTriviaClick: () => void
+		onHangmanClick: () => void = () => {},
+		onTriviaClick: () => void = () => {}
 	) {
 		this.group = new Konva.Group({ visible: true });
 
