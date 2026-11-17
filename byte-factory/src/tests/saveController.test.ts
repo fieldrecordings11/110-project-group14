@@ -1,7 +1,11 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import * as Blockly from 'blockly/core';
-import {SaveController, LevelLike} from '../saves/saveController';
+import type {Level} from '../levels/types';
+import {SaveController} from '../saves/saveController';
 import {save, load} from '../saves/serialization';
+
+const makeLevel = (id: string, startState?: object): Level =>
+  ({id, startState}) as Level;
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -40,7 +44,7 @@ describe('SaveController', () => {
   it('auto-saves to localStorage and invokes callback when blocks change', () => {
     const ws = new Blockly.Workspace();
     const onChanged = vi.fn();
-    const level: LevelLike = {id: 'sequencing'};
+    const level = makeLevel('sequencing');
 
     new SaveController(ws, level, onChanged);
 
@@ -57,10 +61,7 @@ describe('SaveController', () => {
   it('loads level.startState when no saved progress exists', () => {
     const ws = new Blockly.Workspace();
     const onChanged = vi.fn();
-    const level: LevelLike = {
-      id: 'starter_level',
-      startState: createStartState(),
-    };
+    const level = makeLevel('starter_level', createStartState());
 
     const controller = new SaveController(ws, level, onChanged);
     controller.loadLevel(level);
@@ -76,10 +77,7 @@ describe('SaveController', () => {
     savedWs.newBlock('test_move');
     save(savedWs, 'level_with_save');
 
-    const level: LevelLike = {
-      id: 'level_with_save',
-      startState: createStartState(),
-    };
+    const level = makeLevel('level_with_save', createStartState());
 
     const ws = new Blockly.Workspace();
     const controller = new SaveController(ws, level, vi.fn());
@@ -96,21 +94,18 @@ describe('SaveController', () => {
     save(level2Ws, 'level_2');
 
     const ws = new Blockly.Workspace();
-    const controller = new SaveController(ws, {id: 'level_1'}, vi.fn());
+    const controller = new SaveController(ws, makeLevel('level_1'), vi.fn());
     ws.newBlock('test_move');
     vi.runAllTimers();
 
-    controller.loadLevel({id: 'level_2'});
+    controller.loadLevel(makeLevel('level_2'));
     vi.runAllTimers();
 
     expect(ws.getAllBlocks(false)).toHaveLength(2);
   });
 
   it('resetBlocks() clears saved progress and restores level.startState', () => {
-    const level: LevelLike = {
-      id: 'resettable',
-      startState: createStartState(),
-    };
+    const level = makeLevel('resettable', createStartState());
 
     const ws = new Blockly.Workspace();
     const controller = new SaveController(ws, level, vi.fn());

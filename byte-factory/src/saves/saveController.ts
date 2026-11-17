@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly/core';
+import type {Level} from '../levels/types';
 import {save, load, clearSave} from './serialization';
 import {
   exportWorkspaceToFile,
@@ -6,30 +7,21 @@ import {
   ImportResult,
 } from './saveFile';
 
-export interface LevelLike {
-  id?: string;
-  startState?: object;
-}
-
 export class SaveController {
-  private activeLevel: LevelLike;
+  private activeLevel: Level;
   private isLoading = false;
 
   constructor(
     private readonly workspace: Blockly.Workspace,
-    initialLevel: LevelLike,
+    initialLevel: Level,
     private readonly onWorkspaceChanged: () => void,
   ) {
     this.activeLevel = initialLevel;
     this.bindAutoSave();
   }
 
-  get currentLevel(): LevelLike {
+  get currentLevel(): Level {
     return this.activeLevel;
-  }
-
-  private get levelId(): string {
-    return this.activeLevel.id ?? 'demo';
   }
 
   private bindAutoSave(): void {
@@ -47,11 +39,11 @@ export class SaveController {
         return;
       }
       this.onWorkspaceChanged();
-      save(this.workspace, this.levelId);
+      save(this.workspace, this.activeLevel.id);
     });
   }
 
-  loadLevel(level: LevelLike, useSaved = true): void {
+  loadLevel(level: Level, useSaved = true): void {
     this.isLoading = true;
     try {
       if (this.workspace instanceof Blockly.WorkspaceSvg) {
@@ -59,8 +51,7 @@ export class SaveController {
       }
       this.workspace.clear();
 
-      const id = level.id ?? 'demo';
-      const loadedFromSave = useSaved && load(this.workspace, id);
+      const loadedFromSave = useSaved && load(this.workspace, level.id);
       if (!loadedFromSave && level.startState) {
         Blockly.serialization.workspaces.load(level.startState, this.workspace);
       }
@@ -74,14 +65,14 @@ export class SaveController {
   }
 
   resetBlocks(): void {
-    clearSave(this.levelId);
+    clearSave(this.activeLevel.id);
     this.loadLevel(this.activeLevel, false);
-    save(this.workspace, this.levelId);
+    save(this.workspace, this.activeLevel.id);
   }
 
   exportSave(): string {
-    exportWorkspaceToFile(this.workspace, this.levelId);
-    return this.levelId;
+    exportWorkspaceToFile(this.workspace, this.activeLevel.id);
+    return this.activeLevel.id;
   }
 
   async importSave(file: File): Promise<ImportResult> {
@@ -90,7 +81,7 @@ export class SaveController {
       const result = await importWorkspaceFromFile(
         file,
         this.workspace,
-        this.levelId,
+        this.activeLevel.id,
       );
       if (result.ok) {
         this.onWorkspaceChanged();

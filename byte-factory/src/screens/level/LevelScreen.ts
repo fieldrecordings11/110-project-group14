@@ -40,7 +40,7 @@ const TEMPLATE = `
       <div id="gameCanvas"></div>
       <div id="controls">
         <button id="runButton" type="button">Run</button>
-        <button id="resetButton" type="button">Reset</button>
+        <button id="resetButton" type="button">Reset Robot</button>
         <button id="resetBlocksButton" type="button">Reset Blocks</button>
         <button id="exportButton" type="button">Export Save</button>
         <button id="importButton" type="button">Import Save</button>
