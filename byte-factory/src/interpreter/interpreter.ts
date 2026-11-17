@@ -1,9 +1,11 @@
 import * as Blockly from 'blockly/core';
 import { javascriptGenerator } from 'blockly/javascript';
 import { forBlock as moveGeneration } from '../generators/moveGeneration';
+import { actionBlock as actionGeneration } from '../generators/actionGeneration';
+import { sensorBlock as sensorGeneration } from '../generators/sensorGeneration';
 import { Direction, GridMap, Position, RunOutcome, RunResult, TraceStep } from './types';
 
-// The movement generators emit move(n); this is the meaning of n.
+// The generators emit move(n), jump(n), checkClear(n) and checkPuddle(n); this is the meaning of n.
 const DIRECTIONS: Direction[] = ['up', 'down', 'right', 'left'];
 
 const OFFSETS: Record<Direction, Position> = {
@@ -34,7 +36,7 @@ class StopProgram extends Error {
  * every loop calls loopTrap() so infinite loops can be stopped.
  */
 export function generateCode(workspace: Blockly.Workspace): string {
-  Object.assign(javascriptGenerator.forBlock, moveGeneration);
+  Object.assign(javascriptGenerator.forBlock, moveGeneration, actionGeneration, sensorGeneration);
 
   const previousPrefix = javascriptGenerator.STATEMENT_PREFIX;
   const previousTrap = javascriptGenerator.INFINITE_LOOP_TRAP;
@@ -80,28 +82,64 @@ export function runCode(code: string, map: GridMap): RunResult {
     }
   };
 
-  const move = (code: number) => {
-    const direction = DIRECTIONS[code];
-    if (!direction) throw new Error(`Unknown move direction: ${code}`);
-    const offset = OFFSETS[direction];
-    const target = { x: position.x + offset.x, y: position.y + offset.y };
+  /** Records a bump into target and stops the program. */
+  const bumpInto = (direction: Direction, target: Position, outcome: RunOutcome, message: string): never => {
+    trace.push({ kind: 'bump', blockId: currentBlockId, direction, at: position, target });
+    throw new StopProgram(outcome, message);
+  };
 
+  /** Stops the program if the robot can't stand on target. */
+  const checkLanding = (direction: Direction, target: Position) => {
     if (isBlocked(map, target)) {
-      trace.push({ kind: 'bump', blockId: currentBlockId, direction, at: position, target });
-      const what = isOutside(map, target) ? 'the edge of the floor' : 'a wall';
-      throw new StopProgram('hit_wall', `Bonk! The robot ran into ${what} moving ${direction}.`);
+      bumpInto(direction, target, 'hit_wall', `Bonk! The robot ran into ${describeBlocked(map, target)} moving ${direction}.`);
     }
+    if (isPuddle(map, target)) {
+      bumpInto(direction, target, 'hit_puddle', `Splash! The robot stepped in a puddle moving ${direction}. Try jumping over it.`);
+    }
+  };
 
-    trace.push({ kind: 'move', blockId: currentBlockId, direction, from: position, to: target });
-    position = target;
+  const recordStep = (kind: 'move' | 'jump', direction: Direction, to: Position) => {
+    trace.push({ kind, blockId: currentBlockId, direction, from: position, to });
+    position = to;
     if (trace.length > MAX_TRACE_STEPS) {
       throw new StopProgram('too_many_steps', `The robot took more than ${MAX_TRACE_STEPS} steps.`);
     }
   };
 
+  const move = (code: number) => {
+    const direction = toDirection(code);
+    const target = offsetBy(position, direction, 1);
+    checkLanding(direction, target);
+    recordStep('move', direction, target);
+  };
+
+  /** Moves two tiles, over a puddle or plain floor. Walls can't be jumped over. */
+  const jump = (code: number) => {
+    const direction = toDirection(code);
+    const over = offsetBy(position, direction, 1);
+    if (isBlocked(map, over)) {
+      bumpInto(direction, over, 'hit_wall', `Bonk! The robot can't jump over ${describeBlocked(map, over)}.`);
+    }
+    const target = offsetBy(position, direction, 2);
+    checkLanding(direction, target);
+    recordStep('jump', direction, target);
+  };
+
+  // Sensors: answer questions about the tile next to the robot. They don't add trace steps.
+  const checkClear = (code: number) => {
+    const next = offsetBy(position, toDirection(code), 1);
+    return !isBlocked(map, next) && !isPuddle(map, next);
+  };
+  const checkPuddle = (code: number) => isPuddle(map, offsetBy(position, toDirection(code), 1));
+  const checkFinish = () => samePosition(position, map.goal);
+
+  // The only functions the generated code can call.
+  const api = { highlightBlock, loopTrap, move, jump, checkClear, checkPuddle, checkFinish };
+
+  const names = Object.keys(api) as (keyof typeof api)[];
+
   try {
-    // Generated code only references the three functions passed in here.
-    new Function('highlightBlock', 'loopTrap', 'move', code)(highlightBlock, loopTrap, move);
+    new Function(...names, code)(...names.map((name) => api[name]));
   } catch (error) {
     if (error instanceof StopProgram) return finish(error.outcome, error.message);
     const detail = error instanceof Error ? error.message : String(error);
@@ -121,10 +159,29 @@ export function samePosition(a: Position, b: Position): boolean {
   return a.x === b.x && a.y === b.y;
 }
 
+function toDirection(code: number): Direction {
+  const direction = DIRECTIONS[code];
+  if (!direction) throw new Error(`Unknown direction: ${code}`);
+  return direction;
+}
+
+function offsetBy(pos: Position, direction: Direction, tiles: number): Position {
+  const offset = OFFSETS[direction];
+  return { x: pos.x + offset.x * tiles, y: pos.y + offset.y * tiles };
+}
+
 function isOutside(map: GridMap, pos: Position): boolean {
   return pos.x < 0 || pos.y < 0 || pos.x >= map.width || pos.y >= map.height;
 }
 
 function isBlocked(map: GridMap, pos: Position): boolean {
   return isOutside(map, pos) || map.walls.some((wall) => samePosition(wall, pos));
+}
+
+function isPuddle(map: GridMap, pos: Position): boolean {
+  return (map.puddles ?? []).some((puddle) => samePosition(puddle, pos));
+}
+
+function describeBlocked(map: GridMap, pos: Position): string {
+  return isOutside(map, pos) ? 'the edge of the floor' : 'a wall';
 }

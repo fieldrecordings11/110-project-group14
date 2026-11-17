@@ -179,3 +179,13 @@ code {
   transform: translateY(2px);
   box-shadow: 0 2px 0 #17231b;
 }
+
+#levelInstructions {
+  margin: 0;
+  line-height: 1.4;
+}
+
+#blockLimit {
+  margin: 0.25rem 0 0;
+  font-weight: bold;
+}

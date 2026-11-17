@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Screen } from '../app/Screen';
 import { ScreenManager } from '../app/ScreenManager';
 import { ROADMAP_ENTRIES, RoadmapEntry, toRoadmapLevels } from '../app/roadmapEntries';
-import { demoLevel } from '../levels/demo';
+import { sequencingLevel } from '../levels/sequencing';
 
 /** Records mount/unmount calls into a shared log. */
 class FakeScreen implements Screen {
@@ -51,10 +51,10 @@ describe('toRoadmapLevels', () => {
 });
 
 describe('ROADMAP_ENTRIES', () => {
-  it('starts with the demo level, then Hangman on the demo questions', () => {
-    expect(ROADMAP_ENTRIES.map((e) => e.kind)).toEqual(['level', 'hangman']);
+  it('goes Sequencing, Hangman (on the sequencing questions), Loops, Conditionals', () => {
+    expect(ROADMAP_ENTRIES.map((e) => e.title)).toEqual(['Sequencing', 'Hangman', 'Loops', 'Conditionals']);
     const hangman = ROADMAP_ENTRIES[1];
-    expect(hangman.kind === 'hangman' && hangman.questionsFor).toBe(demoLevel.id);
+    expect(hangman.kind === 'hangman' && hangman.questionsFor).toBe(sequencingLevel.id);
   });
 
   it('has unique ids', () => {
