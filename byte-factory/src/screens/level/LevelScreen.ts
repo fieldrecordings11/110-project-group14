@@ -9,6 +9,7 @@ import { sensorBlock as sensorGeneration } from '../../generators/sensorGenerati
 import { generateCode, runCode } from '../../interpreter/interpreter';
 import { GridMap } from '../../interpreter/types';
 import { Level } from '../../levels/types';
+import { SaveController } from '../../saves/saveController';
 import { toolbox } from '../../toolbox';
 import { Validator } from '../../validator/validator';
 import '../../blocks/movement';
@@ -65,10 +66,15 @@ const TEMPLATE = `
         </div>
         <div id="controls">
           <button id="runButton" type="button">Run</button>
-          <button id="resetButton" type="button">Reset</button>
+          <button id="resetButton" type="button">Reset Robot</button>
+          <button id="resetBlocksButton" type="button">Reset Blocks</button>
+          <button id="exportButton" type="button">Export Save</button>
+          <button id="importButton" type="button">Import Save</button>
+          <input id="importFileInput" type="file" accept=".json,application/json" hidden />
         </div>
         <p id="status"></p>
         <pre id="generatedCode"><code></code></pre>
+        main
       </div>
     </div>
   </div>`;
@@ -78,6 +84,7 @@ export class LevelScreen implements Screen {
   private ws: Blockly.WorkspaceSvg | null = null;
   private view: GridView | null = null;
   private player: TracePlayer | null = null;
+  private saveCtrl: SaveController | null = null;
   private readonly validator = new Validator();
 
   constructor(private readonly options: LevelScreenOptions) {}
@@ -90,6 +97,7 @@ export class LevelScreen implements Screen {
     const codeEl = find<HTMLElement>('generatedCode').firstElementChild as HTMLElement;
     const statusEl = find<HTMLElement>('status');
     const runButton = find<HTMLButtonElement>('runButton');
+    const importFileInput = find<HTMLInputElement>('importFileInput');
     find<HTMLElement>('levelTitle').textContent = title;
     find<HTMLButtonElement>('backButton').addEventListener('click', this.options.onExit);
 
@@ -112,6 +120,10 @@ export class LevelScreen implements Screen {
     const showCode = () => {
       codeEl.textContent = javascriptGenerator.workspaceToCode(ws);
     };
+
+    // SaveController handles the change listener (code preview + per-level auto-save).
+    const saveCtrl = new SaveController(ws, level, showCode);
+    this.saveCtrl = saveCtrl;
 
     const run = async () => {
       player.stop();
@@ -147,19 +159,44 @@ export class LevelScreen implements Screen {
       setStatus('Press Run to start.');
     };
 
+    const resetBlocks = () => {
+      if (!window.confirm('Reset all blocks for this level back to the starting state?')) return;
+      player.stop();
+      saveCtrl.resetBlocks();
+      view.reset(map.start);
+      runButton.disabled = false;
+      setStatus('Blocks reset to default.', 'info');
+    };
+
     runButton.addEventListener('click', () => void run());
     find<HTMLButtonElement>('resetButton').addEventListener('click', reset);
+    find<HTMLButtonElement>('resetBlocksButton').addEventListener('click', resetBlocks);
 
-    showCode();
-    setStatus('Press Run to start.');
-
-    // Keep the generated code panel up to date.
-    ws.addChangeListener((e: Blockly.Events.Abstract) => {
-      if (e.isUiEvent || e.type == Blockly.Events.FINISHED_LOADING || ws.isDragging()) {
-        return;
-      }
-      showCode();
+    find<HTMLButtonElement>('exportButton').addEventListener('click', () => {
+      const levelId = saveCtrl.exportSave();
+      setStatus(`Exported save for "${levelId}".`, 'info');
     });
+
+    find<HTMLButtonElement>('importButton').addEventListener('click', () => {
+      importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', async () => {
+      const file = importFileInput.files?.[0];
+      if (!file) return;
+
+      player.stop();
+      const result = await saveCtrl.importSave(file);
+      setStatus(
+        result.ok ? 'Save file imported successfully.' : result.message,
+        result.ok ? 'success' : 'error',
+      );
+      importFileInput.value = '';
+    });
+
+    // Load saved blocks for this level (or level.startState if none exist yet).
+    saveCtrl.loadLevel(level);
+    setStatus('Press Run to start.');
   }
 
   unmount(): void {
@@ -169,5 +206,6 @@ export class LevelScreen implements Screen {
     this.ws = null;
     this.view = null;
     this.player = null;
+    this.saveCtrl = null;
   }
 }
