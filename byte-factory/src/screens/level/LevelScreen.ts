@@ -9,6 +9,7 @@ import { sensorBlock as sensorGeneration } from '../../generators/sensorGenerati
 import { generateCode, runCode } from '../../interpreter/interpreter';
 import { GridMap } from '../../interpreter/types';
 import { Level } from '../../levels/types';
+import { SaveController } from '../../saves/saveController';
 import { toolboxFor } from '../../toolbox';
 import { Validator } from '../../validator/validator';
 import '../../blocks/movement';
@@ -29,27 +30,53 @@ export type LevelScreenOptions = {
   onExit: () => void;
 };
 
-/** Width of the left panel (#outputPane in index.css); wide grids shrink their tiles to fit. */
-const GRID_MAX_WIDTH = 400;
+const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
+  name: 'gameTheme',
+  base: Blockly.Themes.Classic,
+  fontStyle: {
+    family: 'monospace',
+    size: 12,
+    weight: 'bold',
+  },
+  componentStyles: {
+    workspaceBackgroundColour: '#07100c',
+    toolboxBackgroundColour: '#0e1711',
+    toolboxForegroundColour: '#e5eee4',
+    flyoutBackgroundColour: '#17231b',
+    flyoutForegroundColour: '#e5eee4',
+    flyoutOpacity: 1,
+    scrollbarColour: '#56616e',
+  },
+});
 
 const TEMPLATE = `
-  <div id="pageContainer">
-    <div id="outputPane">
+  <div class="level-screen">
+    <header id="gameHeader">
       <div id="levelHeader">
         <button id="backButton" type="button">← Roadmap</button>
-        <h2 id="levelTitle"></h2>
+        <h1 id="levelTitle"></h1>
       </div>
       <p id="levelInstructions"></p>
       <p id="blockLimit"></p>
-      <div id="gameCanvas"></div>
-      <div id="controls">
-        <button id="runButton" type="button">Run</button>
-        <button id="resetButton" type="button">Reset</button>
+    </header>
+    <div id="pageContainer">
+      <div id="blocklyDiv"></div>
+      <div id="outputPanel">
+        <div id="gamePreview">
+          <div id="gameCanvas"></div>
+        </div>
+        <div id="controls">
+          <button id="runButton" type="button">Run</button>
+          <button id="resetButton" type="button">Reset Robot</button>
+          <button id="resetBlocksButton" type="button">Reset Blocks</button>
+          <button id="exportButton" type="button">Export Save</button>
+          <button id="importButton" type="button">Import Save</button>
+          <input id="importFileInput" type="file" accept=".json,application/json" hidden />
+        </div>
+        <p id="status"></p>
+        <pre id="generatedCode"><code></code></pre>
       </div>
-      <p id="status"></p>
-      <pre id="generatedCode"><code></code></pre>
     </div>
-    <div id="blocklyDiv"></div>
   </div>`;
 
 /** A Blockly level: validate -> interpret into a trace -> animate the trace on the grid. */
@@ -57,6 +84,7 @@ export class LevelScreen implements Screen {
   private ws: Blockly.WorkspaceSvg | null = null;
   private view: GridView | null = null;
   private player: TracePlayer | null = null;
+  private saveCtrl: SaveController | null = null;
   private readonly validator = new Validator();
 
   constructor(private readonly options: LevelScreenOptions) {}
@@ -69,13 +97,20 @@ export class LevelScreen implements Screen {
     const codeEl = find<HTMLElement>('generatedCode').firstElementChild as HTMLElement;
     const statusEl = find<HTMLElement>('status');
     const runButton = find<HTMLButtonElement>('runButton');
+    const importFileInput = find<HTMLInputElement>('importFileInput');
     find<HTMLElement>('levelTitle').textContent = title;
     find<HTMLElement>('levelInstructions').textContent = level.instructions;
     find<HTMLElement>('blockLimit').textContent = `Block limit: ${level.blockLimit}`;
     find<HTMLButtonElement>('backButton').addEventListener('click', this.options.onExit);
 
-    const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), { toolbox: toolboxFor(level.allowedBlocks) });
-    const view = new GridView(find<HTMLDivElement>('gameCanvas'), map, fitTileSize(map, GRID_MAX_WIDTH));
+    const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), {
+      toolbox: toolboxFor(level.allowedBlocks),
+      theme: gameTheme,
+    });
+    // Shrink the tiles so wide grids fit the panel. Only the width is checked: the panel
+    // scrolls vertically, so a tall grid still fits (no current level is taller than 6 tiles).
+    const canvas = find<HTMLDivElement>('gameCanvas');
+    const view = new GridView(canvas, map, fitTileSize(map, canvas.clientWidth));
     const player = new TracePlayer(view);
     this.ws = ws;
     this.view = view;
@@ -90,6 +125,10 @@ export class LevelScreen implements Screen {
     const showCode = () => {
       codeEl.textContent = javascriptGenerator.workspaceToCode(ws);
     };
+
+    // SaveController handles the change listener (code preview + per-level auto-save).
+    const saveCtrl = new SaveController(ws, level, showCode);
+    this.saveCtrl = saveCtrl;
 
     const run = async () => {
       player.stop();
@@ -125,19 +164,44 @@ export class LevelScreen implements Screen {
       setStatus('Press Run to start.');
     };
 
+    const resetBlocks = () => {
+      if (!window.confirm('Reset all blocks for this level back to the starting state?')) return;
+      player.stop();
+      saveCtrl.resetBlocks();
+      view.reset(map.start);
+      runButton.disabled = false;
+      setStatus('Blocks reset to default.', 'info');
+    };
+
     runButton.addEventListener('click', () => void run());
     find<HTMLButtonElement>('resetButton').addEventListener('click', reset);
+    find<HTMLButtonElement>('resetBlocksButton').addEventListener('click', resetBlocks);
 
-    showCode();
-    setStatus('Press Run to start.');
-
-    // Keep the generated code panel up to date.
-    ws.addChangeListener((e: Blockly.Events.Abstract) => {
-      if (e.isUiEvent || e.type == Blockly.Events.FINISHED_LOADING || ws.isDragging()) {
-        return;
-      }
-      showCode();
+    find<HTMLButtonElement>('exportButton').addEventListener('click', () => {
+      const levelId = saveCtrl.exportSave();
+      setStatus(`Exported save for "${levelId}".`, 'info');
     });
+
+    find<HTMLButtonElement>('importButton').addEventListener('click', () => {
+      importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', async () => {
+      const file = importFileInput.files?.[0];
+      if (!file) return;
+
+      player.stop();
+      const result = await saveCtrl.importSave(file);
+      setStatus(
+        result.ok ? 'Save file imported successfully.' : result.message,
+        result.ok ? 'success' : 'error',
+      );
+      importFileInput.value = '';
+    });
+
+    // Load saved blocks for this level (or level.startState if none exist yet).
+    saveCtrl.loadLevel(level);
+    setStatus('Press Run to start.');
   }
 
   unmount(): void {
@@ -147,5 +211,6 @@ export class LevelScreen implements Screen {
     this.ws = null;
     this.view = null;
     this.player = null;
+    this.saveCtrl = null;
   }
 }
