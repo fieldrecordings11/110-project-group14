@@ -4,104 +4,77 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import * as Blockly from 'blockly';
-
-import {forBlock as moveGeneration} from './generators/moveGeneration';
-import {actionBlock as actionGeneration} from './generators/actionGeneration'
-import { sensorBlock as sensorGeneration } from './generators/sensorGeneration';
-
-import {JavascriptGenerator, javascriptGenerator} from 'blockly/javascript';
-import {save, load} from './serialization';
-import {toolbox} from './toolbox';
 import './index.css';
-import './blocks/movement';
-import {generateCode, runCode} from './interpreter/interpreter';
-import {GridView} from './animation/GridView';
-import {TracePlayer} from './animation/TracePlayer';
-import {Validator} from './validator/validator';
-import {demoLevel, demoMap} from './levels/demo';
+import {campaign, findCampaignLevel} from './levels/campaign';
+import {LevelScreen} from './game/levelScreen';
+import {showHub} from './screens/hub';
+import type {MinigameEntry} from './screens/hub';
+import {loadRoadmapProgress, saveRoadmapProgress} from './screens/roadmap-progress';
+import {HangmanMinigame} from './hangman/HangmanMinigame';
 
-import './blocks/movement';
-import './blocks/actions';
-import './blocks/sensors';
+// Minigames on either side of the level map: [left] <- you -> [right].
+const leftMinigame: MinigameEntry = {
+  id: 'minigame-2',
+  title: 'Minigame',
+  blurb: 'Coming soon',
+  icon: '🎲',
+  available: false,
+};
+const rightMinigame: MinigameEntry = {
+  id: 'hangman',
+  title: 'Hangman',
+  blurb: 'Spell out the coding words',
+  icon: '🔤',
+  available: true,
+};
 
-// Register the blocks and generator with Blockly
-Object.assign(javascriptGenerator.forBlock, moveGeneration);
-Object.assign(javascriptGenerator.forBlock, actionGeneration);
-Object.assign(javascriptGenerator.forBlock, sensorGeneration);
-
-// Set up UI elements and inject Blockly
-const codeDiv = document.getElementById('generatedCode')?.firstChild;
-const statusEl = document.getElementById('status');
-const blocklyDiv = document.getElementById('blocklyDiv');
-const gameDiv = document.getElementById('gameCanvas') as HTMLDivElement | null;
-const runButton = document.getElementById('runButton') as HTMLButtonElement | null;
-const resetButton = document.getElementById('resetButton') as HTMLButtonElement | null;
-
-if (!blocklyDiv || !gameDiv) {
-  throw new Error(`div with id 'blocklyDiv' or 'gameCanvas' not found`);
+const hubScreen = document.getElementById('hubScreen');
+const levelScreenEl = document.getElementById('levelScreen');
+if (!hubScreen || !levelScreenEl) {
+  throw new Error(`div with id 'hubScreen' or 'levelScreen' not found`);
 }
-const ws = Blockly.inject(blocklyDiv, {toolbox});
 
-const view = new GridView(gameDiv, demoMap);
-const player = new TracePlayer(view);
-const validator = new Validator();
+let completedLevelIds = loadRoadmapProgress();
+let destroyHub: (() => void) | undefined;
+const hangman = new HangmanMinigame();
 
-const setStatus = (text: string, tone: 'info' | 'success' | 'error' = 'info') => {
-  if (!statusEl) return;
-  statusEl.textContent = text;
-  statusEl.className = tone;
-};
+/** Hangman asks the questions of the level the player is working on now. */
+function currentLevelId(): string {
+  const next = campaign.find((entry) => completedLevelIds.indexOf(entry.level.id) === -1);
+  return (next ?? campaign[campaign.length - 1]).level.id;
+}
 
-// Show the generated code (without the interpreter's tracking calls).
-const showCode = () => {
-  if (codeDiv) codeDiv.textContent = javascriptGenerator.workspaceToCode(ws);
-};
-
-// Validate -> interpret into a trace -> animate the trace, highlighting each block.
-const run = async () => {
-  player.stop();
-  const validation = validator.validate(ws, demoLevel);
-  if (!validation.ok) {
-    if (validation.blockId) ws.getBlockById(validation.blockId)?.select();
-    setStatus(validation.message, 'error');
-    return;
-  }
-
-  const result = runCode(generateCode(ws), demoMap);
-  setStatus('Running...');
-  if (runButton) runButton.disabled = true;
-
-  const playback = await player.play(result.trace, demoMap.start, {
-    onStep: (step) => ws.highlightBlock(step.blockId),
+function showHubScreen(): void {
+  destroyHub?.();
+  levelScreen.close();
+  hubScreen!.hidden = false;
+  destroyHub = showHub(hubScreen!, {
+    levels: campaign.map((entry) => ({id: entry.level.id, title: entry.title})),
+    completedLevelIds,
+    left: leftMinigame,
+    right: rightMinigame,
+    onSelectLevel: (levelId) => {
+      const entry = findCampaignLevel(levelId);
+      if (!entry) return;
+      destroyHub?.();
+      destroyHub = undefined;
+      hubScreen!.hidden = true;
+      levelScreen.open(entry);
+    },
+    onSelectMinigame: (minigameId) => {
+      if (minigameId === 'hangman') hangman.open(currentLevelId());
+    },
   });
+}
 
-  ws.highlightBlock(null);
-  if (runButton) runButton.disabled = false;
-  if (playback === 'stopped') return;
-  setStatus(result.message, result.outcome === 'reached_goal' ? 'success' : 'error');
-};
-
-const reset = () => {
-  player.stop();
-  ws.highlightBlock(null);
-  view.reset(demoMap.start);
-  if (runButton) runButton.disabled = false;
-  setStatus('Press Run to start.');
-};
-
-runButton?.addEventListener('click', () => void run());
-resetButton?.addEventListener('click', reset);
-
-if (ws) {
-  showCode();
-  setStatus('Press Run to start.');
-
-  // Keep the generated code panel up to date.
-  ws.addChangeListener((e: Blockly.Events.Abstract) => {
-    if (e.isUiEvent || e.type == Blockly.Events.FINISHED_LOADING || ws.isDragging()) {
-      return;
+const levelScreen = new LevelScreen(levelScreenEl, {
+  onExit: showHubScreen,
+  onComplete: (levelId) => {
+    if (completedLevelIds.indexOf(levelId) === -1) {
+      completedLevelIds = [...completedLevelIds, levelId];
     }
-    showCode();
-  });
-}
+    return saveRoadmapProgress(completedLevelIds);
+  },
+});
+
+showHubScreen();
