@@ -1,10 +1,13 @@
+import { conditionalsLevel } from './conditionals';
+import { loopsLevel } from './loops';
+import { sequencingLevel } from './sequencing';
 import { Level } from './types';
-import { demoLevel } from './demo';
 
 /*
  * Levels in play order. Each level looks like (see ./types.ts):
  * {
  *     id: 'first-loop',                   // unique, stable string id
+ *     title: 'First Loop',                // shown on the roadmap and the level screen
  *     allowedBlocks: ['move_up', 'controls_repeat_ext'],  // block types the player may use
  *     blockLimit: 5,                      // max blocks, not counting 'start'
  *     instructions: 'Use a loop to ...',  // text shown to the player
@@ -12,6 +15,4 @@ import { demoLevel } from './demo';
  *     startState: { ... },                // optional: serialized Blockly blocks to start with
  * }
  */
-export const levels: Level[] = [
-    demoLevel,
-];
+export const levels: Level[] = [sequencingLevel, loopsLevel, conditionalsLevel];

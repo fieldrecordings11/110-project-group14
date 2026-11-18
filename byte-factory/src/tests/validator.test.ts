@@ -6,6 +6,7 @@ import { Level } from '../levels/types';
 
 const level: Level = {
     id: 'test-level',
+    title: 'Test level',
     allowedBlocks: ['text', 'logic_boolean'],
     blockLimit: 2,
     instructions: 'Test level',
