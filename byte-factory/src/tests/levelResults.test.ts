@@ -23,6 +23,8 @@ vi.mock('blockly', async (importOriginal) => {
     inject: vi.fn(() => ({
       highlightBlock: mocks.highlightBlock,
       dispose: mocks.dispose,
+      clear: vi.fn(),
+      clearUndo: vi.fn(),
     })),
   };
 });
@@ -69,7 +71,7 @@ const map: GridMap = {
   walls: [],
 };
 const level: Level = {
-  id: 'test-level', instructions: 'Move to the goal.',
+  id: 'test-level', title: 'Test level', instructions: 'Move to the goal.',
   allowedBlocks: ['move_right'], blockLimit: 5, map: map,
 };
 
@@ -82,7 +84,7 @@ describe('Level result dialog', () => {
 
   function mountScreen(hasNextLevel = true) {
     screen = new LevelScreen({
-      title: 'Test level', level: level, map: map,
+      level: level,
       onComplete: onComplete, onExit: onExit,
       onContinue: hasNextLevel ? onContinue : undefined,
     });
