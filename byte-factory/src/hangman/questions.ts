@@ -8,43 +8,43 @@ import { HangmanQuestion } from './types';
  */
 const byLevel = new Map<string, HangmanQuestion[]>([
   [
-    'demo',
+    'sequencing',
     [
       {
-        id: 'demo-move-right',
+        id: 'sequencing-move-right',
         prompt: 'What line of code makes the robot move right?',
         snippet: '// 0 = up, 1 = down, 2 = right, 3 = left\n________',
         answer: 'move(2);',
         hint: 'A call to a function looks like name(number);',
       },
       {
-        id: 'demo-move-up',
+        id: 'sequencing-move-up',
         prompt: 'What line of code makes the robot move up?',
         snippet: '// 0 = up, 1 = down, 2 = right, 3 = left\n________',
         answer: 'move(0);',
         hint: 'Look at which number means up in the list.',
       },
       {
-        id: 'demo-repeat',
+        id: 'sequencing-repeat',
         prompt: 'Which block repeats the blocks inside it?',
         snippet: '______ 4 times\n  Move right',
         answer: 'repeat',
         hint: 'It is in the Loops drawer.',
       },
       {
-        id: 'demo-loop',
+        id: 'sequencing-loop',
         prompt: 'What do we call code that runs again and again?',
         answer: 'loop',
         hint: 'Four letters. The Repeat block makes one.',
       },
       {
-        id: 'demo-algorithm',
+        id: 'sequencing-algorithm',
         prompt: 'What is a step-by-step plan for solving a problem called?',
         answer: 'algorithm',
         hint: 'Your blocks are one!',
       },
       {
-        id: 'demo-bug',
+        id: 'sequencing-bug',
         prompt: 'What is a mistake in your code called?',
         answer: 'bug',
         hint: 'Three letters, and it also crawls.',

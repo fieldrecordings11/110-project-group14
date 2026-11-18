@@ -1,5 +1,7 @@
 import { levelRegistry } from '../levels';
-import { demoLevel } from '../levels/demo';
+import { conditionalsLevel } from '../levels/conditionals';
+import { loopsLevel } from '../levels/loops';
+import { sequencingLevel } from '../levels/sequencing';
 import { Level } from '../levels/types';
 import { RoadmapLevel, getLevelStatus } from '../screens/roadmap';
 
@@ -11,10 +13,15 @@ export type RoadmapEntry =
   | { kind: 'level'; id: string; levelId: string }
   | { kind: 'hangman'; id: string; title: string; questionsFor: string };
 
-/** Roadmap stops in play order. Each one unlocks when the one before it is completed. */
+/**
+ * Roadmap stops in play order. Each one unlocks when the one before it is completed.
+ * Ids are saved in progress, so keep existing ids when reordering or adding stops.
+ */
 export const ROADMAP_ENTRIES: RoadmapEntry[] = [
-  { kind: 'level', id: '1', levelId: demoLevel.id },
-  { kind: 'hangman', id: '2', title: 'Hangman', questionsFor: demoLevel.id },
+  { kind: 'level', id: '1', levelId: sequencingLevel.id },
+  { kind: 'hangman', id: '2', title: 'Hangman', questionsFor: sequencingLevel.id },
+  { kind: 'level', id: '3', levelId: loopsLevel.id },
+  { kind: 'level', id: '4', levelId: conditionalsLevel.id },
 ];
 
 /** The level a roadmap stop opens. Throws if no level has that id, so a typo fails loudly. */

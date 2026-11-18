@@ -3,7 +3,7 @@ import { Screen } from '../app/Screen';
 import { ScreenManager } from '../app/ScreenManager';
 import { ROADMAP_ENTRIES, RoadmapEntry, getEntryLevel, toRoadmapLevels } from '../app/roadmapEntries';
 import { levels } from '../levels/data';
-import { demoLevel } from '../levels/demo';
+import { sequencingLevel } from '../levels/sequencing';
 
 /** Records mount/unmount calls into a shared log. */
 class FakeScreen implements Screen {
@@ -45,8 +45,8 @@ describe('toRoadmapLevels', () => {
   });
 
   it("shows a level stop with its level's title", () => {
-    const withLevel: RoadmapEntry[] = [{ kind: 'level', id: 'a', levelId: demoLevel.id }];
-    expect(toRoadmapLevels(withLevel, [])[0].title).toBe(demoLevel.title);
+    const withLevel: RoadmapEntry[] = [{ kind: 'level', id: 'a', levelId: sequencingLevel.id }];
+    expect(toRoadmapLevels(withLevel, [])[0].title).toBe(sequencingLevel.title);
   });
 
   it('draws the first stop at the bottom of the map', () => {
@@ -57,10 +57,10 @@ describe('toRoadmapLevels', () => {
 });
 
 describe('ROADMAP_ENTRIES', () => {
-  it('starts with the demo level, then Hangman on the demo questions', () => {
-    expect(ROADMAP_ENTRIES.map((e) => e.kind)).toEqual(['level', 'hangman']);
+  it('goes Sequencing, Hangman (on the sequencing questions), Loops, Conditionals', () => {
+    expect(toRoadmapLevels(ROADMAP_ENTRIES, []).map((l) => l.title)).toEqual(['Sequencing', 'Hangman', 'Loops', 'Conditionals']);
     const hangman = ROADMAP_ENTRIES[1];
-    expect(hangman.kind === 'hangman' && hangman.questionsFor).toBe(demoLevel.id);
+    expect(hangman.kind === 'hangman' && hangman.questionsFor).toBe(sequencingLevel.id);
   });
 
   it('has unique ids', () => {
@@ -84,7 +84,7 @@ describe('ROADMAP_ENTRIES', () => {
 
 describe('getEntryLevel', () => {
   it('returns the level with the given id', () => {
-    expect(getEntryLevel(demoLevel.id)).toBe(demoLevel);
+    expect(getEntryLevel(sequencingLevel.id)).toBe(sequencingLevel);
   });
 
   it('throws for an unknown id', () => {

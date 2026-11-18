@@ -11,9 +11,9 @@ export class MenuScreenController extends ScreenController implements Screen {
   private readonly view: MenuScreenView;
   private stage: Konva.Stage | null = null;
 
-  constructor(onPlay: () => void) {
+  constructor(onPlay: () => void, onHangman: () => void = () => {}) {
     super();
-    this.view = new MenuScreenView(onPlay);
+    this.view = new MenuScreenView(onPlay, onHangman);
   }
 
   getView(): View {

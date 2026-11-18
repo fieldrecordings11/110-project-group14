@@ -1,5 +1,7 @@
+import { conditionalsLevel } from './conditionals';
+import { loopsLevel } from './loops';
+import { sequencingLevel } from './sequencing';
 import { Level } from './types';
-import { demoLevel } from './demo';
 
 /*
  * Levels in play order. Each level looks like (see ./types.ts):
@@ -13,6 +15,4 @@ import { demoLevel } from './demo';
  *     startState: { ... },                // optional: serialized Blockly blocks to start with
  * }
  */
-export const levels: Level[] = [
-    demoLevel,
-];
+export const levels: Level[] = [sequencingLevel, loopsLevel, conditionalsLevel];

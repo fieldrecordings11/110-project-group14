@@ -29,7 +29,15 @@ const markComplete = (id: string) => {
   saveRoadmapProgress(completedIds);
 };
 
-const showMenu = () => app.show(new MenuScreenController(showRoadmap));
+const openHangmanFromMenu = () => {
+  // Reuse the Hangman entry that already exists on the roadmap
+  const entry = ROADMAP_ENTRIES.find((e) => e.kind !== 'level');
+  if (!entry) return;
+
+  hangman.open(entry.questionsFor, () => showMenu());
+};
+
+const showMenu = () => app.show(new MenuScreenController(showRoadmap, openHangmanFromMenu));
 
 const showRoadmap = () =>
   app.show(
