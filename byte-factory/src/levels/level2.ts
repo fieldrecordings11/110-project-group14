@@ -2,6 +2,7 @@ import { Level } from './types';
 
 export const level2: Level = {
   id: 'LOOPS',
+  title: 'Loops',
   allowedBlocks: ['move_right', 'move_down', 'controls_repeat_ext', 'math_number'],
   blockLimit: 20,
   instructions: `

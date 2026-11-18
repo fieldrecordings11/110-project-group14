@@ -7,6 +7,7 @@ import { Level } from './types';
  * Levels in play order. Each level looks like (see ./types.ts):
  * {
  *     id: 'first-loop',                   // unique, stable string id
+ *     title: 'First Loop',                // shown on the roadmap and the level screen
  *     allowedBlocks: ['move_up', 'controls_repeat_ext'],  // block types the player may use
  *     blockLimit: 5,                      // max blocks, not counting 'start'
  *     instructions: 'Use a loop to ...',  // text shown to the player

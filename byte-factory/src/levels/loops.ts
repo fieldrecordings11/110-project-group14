@@ -31,6 +31,7 @@ export const loopsMap: GridMap = {
  */
 export const loopsLevel: Level = {
   id: 'loops',
+  title: 'Loops',
   allowedBlocks: ['move_right', 'move_down', 'controls_whileUntil', 'on_finish_grid'],
   blockLimit: 4,
   instructions:

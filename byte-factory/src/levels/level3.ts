@@ -2,6 +2,7 @@ import { Level } from './types';
 
 export const level3: Level = {
   id: 'CONDITIONALS',
+  title: 'Conditionals',
   allowedBlocks: [
     'move_up', 'move_down', 'move_left', 'move_right',
     'controls_repeat_ext', 'math_number',

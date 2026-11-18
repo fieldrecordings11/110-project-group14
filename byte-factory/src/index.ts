@@ -6,7 +6,7 @@
 
 import './index.css';
 import { ScreenManager } from './app/ScreenManager';
-import { ROADMAP_ENTRIES, toRoadmapLevels } from './app/roadmapEntries';
+import { ROADMAP_ENTRIES, getEntryLevel, toRoadmapLevels } from './app/roadmapEntries';
 import { HangmanMinigame } from './hangman/HangmanMinigame';
 import { LevelScreen } from './screens/level/LevelScreen';
 import { MenuScreenController } from './screens/menu/MenuScreenController';
@@ -55,9 +55,7 @@ const openEntry = (id: string) => {
   if (entry.kind === 'level') {
     app.show(
       new LevelScreen({
-        title: entry.title,
-        level: entry.level,
-        map: entry.map,
+        level: getEntryLevel(entry.levelId),
         onComplete: () => markComplete(entry.id),
         onExit: showRoadmap,
       }),

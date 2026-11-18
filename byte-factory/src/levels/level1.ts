@@ -2,6 +2,7 @@ import { Level } from './types';
 
 export const level1: Level = {
   id: 'FIRST STEPS',
+  title: 'First Steps',
   allowedBlocks: ['move_right', 'move_down'],
   blockLimit: 20,
   instructions: 'Move the robot to the goal using the move blocks.',
