@@ -53,11 +53,23 @@ const openEntry = (id: string) => {
   if (!entry) return;
 
   if (entry.kind === 'level') {
+    const gameLevels = ROADMAP_ENTRIES.filter((stop) => stop.kind === 'level');
+    const currentIndex = gameLevels.findIndex((stop) => stop.id === id);
+    const nextEntry = gameLevels[currentIndex + 1];
+
+    let onContinue: (() => void) | undefined;
+
+    if (nextEntry) {
+      onContinue = () => {
+        openEntry(nextEntry.id);
+      }
+    }
     app.show(
       new LevelScreen({
         level: getEntryLevel(entry.levelId),
         onComplete: () => markComplete(entry.id),
         onExit: showRoadmap,
+        onContinue: onContinue
       }),
     );
   } else {
