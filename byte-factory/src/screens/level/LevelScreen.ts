@@ -28,6 +28,7 @@ export type LevelScreenOptions = {
   /** Called each time the robot reaches the goal. */
   onComplete: () => void;
   onExit: () => void;
+  onContinue?: () => void;
 };
 
 const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
@@ -77,6 +78,17 @@ const TEMPLATE = `
         <pre id="generatedCode"><code></code></pre>
       </div>
     </div>
+
+    <dialog id="resultDialog" aria-labelledby="resultTitle">
+      <h2 id="resultTitle"></h2>
+      <p id="resultMessage"></p>
+      <div id="resultActions">
+        <button id="replayButton" type="button">Replay</button>
+        <button id="keepEditingButton" type="button">Try Again</button>
+        <button id="continueButton" type="button" hidden>Next Level</button>
+        <button id="resultRoadmapButton" type="button">Return to Roadmap</button>
+      </div>
+    </dialog>
   </div>`;
 
 /** A Blockly level: validate -> interpret into a trace -> animate the trace on the grid. */
@@ -97,6 +109,12 @@ export class LevelScreen implements Screen {
     const codeEl = find<HTMLElement>('generatedCode').firstElementChild as HTMLElement;
     const statusEl = find<HTMLElement>('status');
     const runButton = find<HTMLButtonElement>('runButton');
+    const resultDialog = find<HTMLDialogElement>('resultDialog');
+    const resultTitle = find<HTMLElement>('resultTitle');
+    const resultMessage = find<HTMLElement>('resultMessage');
+    const replayButton = find<HTMLButtonElement>('replayButton');
+    const keepEditingButton = find<HTMLButtonElement>('keepEditingButton');
+    const continueButton = find<HTMLButtonElement>('continueButton');
     const importFileInput = find<HTMLInputElement>('importFileInput');
     find<HTMLElement>('levelTitle').textContent = title;
     find<HTMLElement>('levelInstructions').textContent = level.instructions;
@@ -154,6 +172,19 @@ export class LevelScreen implements Screen {
       const solved = result.outcome === 'reached_goal';
       setStatus(result.message, solved ? 'success' : 'error');
       if (solved) this.options.onComplete();
+      if (solved) {
+        resultTitle.textContent = 'Level complete! 🏆';
+      } else {
+        resultTitle.textContent = 'Try again!';
+      }
+
+      resultMessage.textContent = result.message;
+
+      replayButton.hidden = !solved;
+      keepEditingButton.hidden = solved;
+      continueButton.hidden = !solved || !this.options.onContinue;
+
+      resultDialog.showModal();
     };
 
     const reset = () => {
@@ -172,6 +203,28 @@ export class LevelScreen implements Screen {
       runButton.disabled = false;
       setStatus('Blocks reset to default.', 'info');
     };
+
+    replayButton.addEventListener('click', () => {
+      resultDialog.close();
+      reset();
+    });
+
+    keepEditingButton.addEventListener('click', () => {
+      resultDialog.close();
+    });
+
+    continueButton.addEventListener('click', () => {
+      resultDialog.close();
+
+      if (this.options.onContinue) {
+        this.options.onContinue();
+      }
+    });
+
+    find<HTMLButtonElement>('resultRoadmapButton').addEventListener('click', () => {
+      resultDialog.close();
+      this.options.onExit();
+    });
 
     runButton.addEventListener('click', () => void run());
     find<HTMLButtonElement>('resetButton').addEventListener('click', reset);
