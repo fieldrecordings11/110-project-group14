@@ -128,9 +128,6 @@ code {
   color: #c0392b;
 }
 
-#levelTitle {
-  margin: 0 0 0.75rem;
-}
 .menu-screen {
   display: flex;
   align-items: center;
