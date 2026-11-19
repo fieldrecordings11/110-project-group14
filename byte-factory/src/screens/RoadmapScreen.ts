@@ -1,15 +1,22 @@
 import type { Screen } from '../app/Screen';
-import { RoadmapLevel, showRoadmap } from './roadmap';
+import { showHub } from './hub';
+import type { MinigameEntry } from './hub';
+import type { RoadmapLevel } from './roadmap';
 
 export type RoadmapScreenOptions = {
   levels: RoadmapLevel[];
+  /** Minigame shown on the left of the roadmap. */
+  left: MinigameEntry;
+  /** Minigame shown on the right of the roadmap. */
+  right: MinigameEntry;
   onSelectLevel: (levelId: string) => void;
+  onSelectMinigame: (minigameId: string) => void;
   onBack: () => void;
 };
 
-/** The roadmap screen: showRoadmap plus a button back to the menu. */
+/** The roadmap screen: "you" on top, a minigame on each side of the roadmap, plus a button back to the menu. */
 export class RoadmapScreen implements Screen {
-  private destroyRoadmap: (() => void) | null = null;
+  private destroyHub: (() => void) | null = null;
 
   constructor(private readonly options: RoadmapScreenOptions) {}
 
@@ -22,11 +29,17 @@ export class RoadmapScreen implements Screen {
 
     const container = document.createElement('div');
     root.append(back, container);
-    this.destroyRoadmap = showRoadmap(container, this.options.levels, this.options.onSelectLevel);
+    this.destroyHub = showHub(container, {
+      levels: this.options.levels,
+      left: this.options.left,
+      right: this.options.right,
+      onSelectLevel: this.options.onSelectLevel,
+      onSelectMinigame: this.options.onSelectMinigame,
+    });
   }
 
   unmount(): void {
-    this.destroyRoadmap?.();
-    this.destroyRoadmap = null;
+    this.destroyHub?.();
+    this.destroyHub = null;
   }
 }
