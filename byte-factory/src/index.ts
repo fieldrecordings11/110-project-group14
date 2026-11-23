@@ -12,6 +12,7 @@ import { LevelScreen } from './screens/level/LevelScreen';
 import { MenuScreenController } from './screens/menu/MenuScreenController';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { loadRoadmapProgress, saveRoadmapProgress } from './screens/roadmap-progress';
+import { TriviaMinigame } from './trivia/trivia';
 
 // App flow: main menu -> roadmap -> a level or the Hangman minigame -> back to the roadmap.
 const root = document.getElementById('app');
@@ -21,6 +22,7 @@ if (!root) {
 
 const app = new ScreenManager(root);
 const hangman = new HangmanMinigame();
+const trivia = new TriviaMinigame();
 let completedIds = loadRoadmapProgress();
 
 const markComplete = (id: string) => {
@@ -37,7 +39,9 @@ const openHangmanFromMenu = () => {
   hangman.open(entry.questionsFor, () => showMenu());
 };
 
-const showMenu = () => app.show(new MenuScreenController(showRoadmap, openHangmanFromMenu));
+const openTriviaFromMenu = () => trivia.open();
+
+const showMenu = () => app.show(new MenuScreenController(showRoadmap, openHangmanFromMenu, openTriviaFromMenu));
 
 const showRoadmap = () =>
   app.show(
