@@ -15,6 +15,28 @@ export const sequencingLesson: Lesson = {
           'Today your algorithm will steer Byte, the factory helper robot.',
       ],
     },
+    {
+      kind: 'text',
+      heading: 'One step at a time',
+      paragraphs: [
+        'Every program starts with the "when RUN pressed" block. Snap blocks underneath it, ' +
+          'and when you press Run, Byte follows them one at a time, from top to bottom. ' +
+          'Running instructions in order like this is called SEQUENCING.',
+        'Each move block sends Byte one tile up, down, left or right. ' +
+          'If a wall is in the way, Byte bumps into it and the program stops.',
+      ],
+    },
+    {
+      kind: 'text',
+      heading: 'Order matters',
+      paragraphs: [
+        '"Move right, then down" and "move down, then right" take Byte along different paths. ' +
+          'Around walls, only one of them might get through. Swapping two blocks can change everything.',
+        'Before you build, trace the path with your finger and count the tiles to each turn. ' +
+          'Then press Run and watch. If Byte goes the wrong way, find the first block where it went wrong ' +
+          'and fix that one. Finding and fixing mistakes is called DEBUGGING.',
+      ],
+    },
     // TODO: example page. Keep the demo grid small (e.g. 3x3) and only use blocks
     // this level allows (move_up/down/left/right), so the demo matches what the player gets.
     // {
