@@ -14,6 +14,7 @@ import { Level } from '../../levels/types';
 import { SaveController } from '../../saves/saveController';
 import { toolboxFor } from '../../toolbox';
 import { Validator } from '../../validator/validator';
+import { StartBlockDragger } from './StartBlockDragger';
 import '../../blocks/movement';
 import '../../blocks/actions';
 import '../../blocks/sensors';
@@ -127,6 +128,10 @@ export class LevelScreen implements Screen {
     const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), {
       toolbox: toolboxFor(level.allowedBlocks),
       theme: gameTheme,
+      // Loading a level clears the workspace, which puts the start block in the trash can.
+      // Capping it at one stops it being dragged back out, duplicated or pasted.
+      maxInstances: { start: 1 },
+      plugins: { blockDragger: StartBlockDragger },
     });
     // Load the level's starting blocks, if any, with a clean undo history.
     new LevelLoader(ws, levelRegistry).loadLevel(level);
