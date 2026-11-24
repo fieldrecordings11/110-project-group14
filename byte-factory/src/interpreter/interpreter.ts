@@ -3,6 +3,7 @@ import { javascriptGenerator } from 'blockly/javascript';
 import { forBlock as moveGeneration } from '../generators/moveGeneration';
 import { actionBlock as actionGeneration } from '../generators/actionGeneration';
 import { sensorBlock as sensorGeneration } from '../generators/sensorGeneration';
+import { eventBlock as eventGeneration } from '../generators/eventGeneration';
 import { Direction, GridMap, Position, RunOutcome, RunResult, TraceStep } from './types';
 
 // The generators emit move(n), jump(n), checkClear(n) and checkPuddle(n); this is the meaning of n.
@@ -36,7 +37,7 @@ class StopProgram extends Error {
  * every loop calls loopTrap() so infinite loops can be stopped.
  */
 export function generateCode(workspace: Blockly.Workspace): string {
-  Object.assign(javascriptGenerator.forBlock, moveGeneration, actionGeneration, sensorGeneration);
+  Object.assign(javascriptGenerator.forBlock, moveGeneration, actionGeneration, sensorGeneration, eventGeneration);
 
   const previousPrefix = javascriptGenerator.STATEMENT_PREFIX;
   const previousTrap = javascriptGenerator.INFINITE_LOOP_TRAP;

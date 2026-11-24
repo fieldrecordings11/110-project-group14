@@ -6,6 +6,7 @@ import { TracePlayer } from '../../animation/TracePlayer';
 import { forBlock as moveGeneration } from '../../generators/moveGeneration';
 import { actionBlock as actionGeneration } from '../../generators/actionGeneration';
 import { sensorBlock as sensorGeneration } from '../../generators/sensorGeneration';
+import { eventBlock as eventGeneration } from '../../generators/eventGeneration';
 import { generateCode, runCode } from '../../interpreter/interpreter';
 import { levelRegistry } from '../../levels';
 import { LevelLoader } from '../../levels/loader';
@@ -16,11 +17,13 @@ import { Validator } from '../../validator/validator';
 import '../../blocks/movement';
 import '../../blocks/actions';
 import '../../blocks/sensors';
+import '../../blocks/events';
 
 // Register the blocks' generators with Blockly
 Object.assign(javascriptGenerator.forBlock, moveGeneration);
 Object.assign(javascriptGenerator.forBlock, actionGeneration);
 Object.assign(javascriptGenerator.forBlock, sensorGeneration);
+Object.assign(javascriptGenerator.forBlock, eventGeneration);
 
 export type LevelScreenOptions = {
   level: Level;

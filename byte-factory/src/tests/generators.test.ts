@@ -6,16 +6,19 @@ import { javascriptGenerator } from 'blockly/javascript';
 import '../blocks/actions';
 import '../blocks/movement';
 import '../blocks/sensors';
+import '../blocks/events';
 
 // Import your generators
 import { actionBlock } from '../generators/actionGeneration';
 import { forBlock } from '../generators/moveGeneration';
 import { sensorBlock } from '../generators/sensorGeneration';
+import { eventBlock } from '../generators/eventGeneration';
 
 // Register generators for tests
 Object.assign(javascriptGenerator.forBlock, actionBlock);
 Object.assign(javascriptGenerator.forBlock, forBlock);
 Object.assign(javascriptGenerator.forBlock, sensorBlock);
+Object.assign(javascriptGenerator.forBlock, eventBlock);
 
 describe('Blockly Code Generation', () => {
   let workspace: Blockly.Workspace;
@@ -133,6 +136,20 @@ describe('Blockly Code Generation', () => {
       const block = workspace.newBlock('on_finish_grid');
       const codeTuple = javascriptGenerator.blockToCode(block) as [string, number];
       expect(codeTuple[0]).toBe('checkFinish()');
+    });
+  });
+
+  describe('Event Blocks', () => {
+    it('should generate no code for start on its own', () => {
+      const block = workspace.newBlock('start');
+      expect(javascriptGenerator.blockToCode(block)).toBe('');
+    });
+
+    it('should generate the blocks attached below start', () => {
+      const start = workspace.newBlock('start');
+      const move = workspace.newBlock('move_right');
+      start.nextConnection!.connect(move.previousConnection!);
+      expect(javascriptGenerator.blockToCode(start)).toBe('move(2);\n');
     });
   });
 });
