@@ -64,6 +64,8 @@ const openEntry = (id: string) => {
         openEntry(nextEntry.id);
       }
     }
+    // TODO(preview): if getLesson(entry.levelId) exists, show LevelPreviewScreen first and
+    // move this app.show(new LevelScreen(...)) into its onStart; onBack -> showRoadmap.
     app.show(
       new LevelScreen({
         level: getEntryLevel(entry.levelId),

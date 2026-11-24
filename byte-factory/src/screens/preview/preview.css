@@ -1,0 +1,21 @@
+/* Level preview / lesson screen. See LevelPreviewScreen.ts for the markup. */
+
+.preview-screen {
+  /* TODO: full-height column: header, card (grows), footer */
+}
+
+.preview-header {
+  /* TODO: Back button on the left, centered title + subtitle */
+}
+
+.preview-card {
+  /* TODO: bordered dark panel */
+}
+
+/* TODO: text page — yellow heading, roomy line-height for paragraphs */
+
+/* TODO: example page — green "EXAMPLE" label, blocks on the left, grid + Run Demo on the right */
+
+.preview-footer {
+  /* TODO: Skip on the left, page count in the middle, Prev / Next (or Start Level) on the right */
+}
