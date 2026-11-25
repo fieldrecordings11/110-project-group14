@@ -7,6 +7,7 @@
 import './index.css';
 import { ScreenManager } from './app/ScreenManager';
 import { ROADMAP_ENTRIES, getEntryLevel, toRoadmapLevels } from './app/roadmapEntries';
+import { sequencingLevel } from './levels/sequencing';
 import { HangmanMinigame } from './hangman/HangmanMinigame';
 import { getLesson } from './lessons';
 import { LevelScreen } from './screens/level/LevelScreen';
@@ -16,7 +17,7 @@ import { RoadmapScreen } from './screens/RoadmapScreen';
 import { loadRoadmapProgress, saveRoadmapProgress } from './screens/roadmap-progress';
 import { MainGameTutorial, shouldShowMainGameTutorial } from './tutorial/MainGameTutorial';
 
-// App flow: main menu -> roadmap -> a level (after its lesson) or the Hangman minigame -> back to the roadmap.
+// The roadmap opens coding lessons and levels. Hangman opens separately from the main menu.
 const root = document.getElementById('app');
 if (!root) {
   throw new Error(`div with id 'app' not found`);
@@ -34,11 +35,7 @@ const markComplete = (id: string) => {
 };
 
 const openHangmanFromMenu = () => {
-  // Reuse the Hangman entry that already exists on the roadmap
-  const entry = ROADMAP_ENTRIES.find((e) => e.kind !== 'level');
-  if (!entry) return;
-
-  hangman.open(entry.questionsFor, () => showMenu());
+  hangman.open(sequencingLevel.id, () => showMenu());
 };
 
 // Main Game opens the roadmap with the level-screen tutorial popped up on top of it.
@@ -62,51 +59,43 @@ const openEntry = (id: string) => {
   const entry = ROADMAP_ENTRIES.find((e) => e.id === id);
   if (!entry) return;
 
-  if (entry.kind === 'level') {
-    const gameLevels = ROADMAP_ENTRIES.filter((stop) => stop.kind === 'level');
-    const currentIndex = gameLevels.findIndex((stop) => stop.id === id);
-    const nextEntry = gameLevels[currentIndex + 1];
+  const currentIndex = ROADMAP_ENTRIES.findIndex((stop) => stop.id === id);
+  const nextEntry = ROADMAP_ENTRIES[currentIndex + 1];
 
-    let onContinue: (() => void) | undefined;
+  let onContinue: (() => void) | undefined;
 
-    if (nextEntry) {
-      onContinue = () => {
-        openEntry(nextEntry.id);
-      }
-    }
-    const level = getEntryLevel(entry.levelId);
-    const startLevel = () =>
-      app.show(
-        new LevelScreen({
-          level,
-          onComplete: () => markComplete(entry.id),
-          onExit: showRoadmap,
-          onContinue: onContinue
-        }),
-      );
-
-    // Show the level's lesson first, if it has one.
-    const lesson = getLesson(level.id);
-    if (lesson && lesson.pages.length > 0) {
-      app.show(
-        new LevelPreviewScreen({
-          level,
-          levelNumber: currentIndex + 1,
-          lesson,
-          onStart: startLevel,
-          onBack: showRoadmap,
-        }),
-      );
-    } else {
-      startLevel();
-    }
-  } else {
-    // Hangman opens on top of the roadmap; redraw the roadmap afterwards so it unlocks the next stop.
-    hangman.open(entry.questionsFor, (result) => {
-      if (result.finished) markComplete(entry.id);
-      showRoadmap();
-    });
+  if (nextEntry) {
+    onContinue = () => {
+      openEntry(nextEntry.id);
+    };
   }
+  const level = getEntryLevel(entry.levelId);
+  const startLevel = () =>
+    app.show(
+      new LevelScreen({
+        level,
+        onComplete: () => markComplete(entry.id),
+        onExit: showRoadmap,
+        onContinue: onContinue
+      }),
+    );
+
+  // Show the level's lesson first, if it has one.
+  const lesson = getLesson(level.id);
+  if (lesson && lesson.pages.length > 0) {
+    app.show(
+      new LevelPreviewScreen({
+        level,
+        levelNumber: currentIndex + 1,
+        lesson,
+        onStart: startLevel,
+        onBack: showRoadmap,
+      }),
+    );
+  } else {
+    startLevel();
+  }
+
 };
 
 showMenu();
