@@ -1,4 +1,5 @@
 import { conditionalsLevel } from '../levels/conditionals';
+import { demoProgram } from './demoProgram';
 import { Lesson } from './types';
 
 export const conditionalsLesson: Lesson = {
@@ -35,6 +36,33 @@ export const conditionalsLesson: Lesson = {
           'Combine what you know: a loop that keeps going, with a choice inside it.',
       ],
     },
-    // TODO: example page using "if / else" with a sensor block on a small grid.
+    {
+      kind: 'example',
+      caption:
+        'Byte checks for a puddle first. There is one, so it runs the "do" part and jumps ' +
+        'instead of the "else" part. Then it moves on to the star.',
+      demo: {
+        map: {
+          width: 4,
+          height: 1,
+          start: { x: 0, y: 0 },
+          goal: { x: 3, y: 0 },
+          walls: [],
+          puddles: [{ x: 1, y: 0 }],
+        },
+        blocks: demoProgram(
+          {
+            type: 'controls_if',
+            extraState: { hasElse: true },
+            inputs: {
+              IF0: { block: { type: 'puddle_right' } },
+              DO0: { block: { type: 'jump_right' } },
+              ELSE: { block: { type: 'move_right' } },
+            },
+          },
+          'move_right',
+        ),
+      },
+    },
   ],
 };

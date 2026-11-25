@@ -1,4 +1,5 @@
 import { sequencingLevel } from '../levels/sequencing';
+import { demoProgram } from './demoProgram';
 import { Lesson } from './types';
 
 export const sequencingLesson: Lesson = {
@@ -37,12 +38,26 @@ export const sequencingLesson: Lesson = {
           'and fix that one. Finding and fixing mistakes is called DEBUGGING.',
       ],
     },
-    // TODO: example page. Keep the demo grid small (e.g. 3x3) and only use blocks
-    // this level allows (move_up/down/left/right), so the demo matches what the player gets.
-    // {
-    //   kind: 'example',
-    //   caption: 'Blocks run from top to bottom. Order matters!',
-    //   demo: { map: { ... }, blocks: { ... } },
-    // },
+    {
+      kind: 'example',
+      caption:
+        'Byte steps down first to get around the wall, then moves right three times. ' +
+        'Put a "Move right" on top and Byte would bump into the wall. Order matters!',
+      demo: {
+        map: {
+          width: 4,
+          height: 3,
+          start: { x: 0, y: 0 },
+          goal: { x: 3, y: 1 },
+          walls: [
+            { x: 1, y: 0 },
+            { x: 2, y: 0 },
+            { x: 1, y: 2 },
+            { x: 2, y: 2 },
+          ],
+        },
+        blocks: demoProgram('move_down', 'move_right', 'move_right', 'move_right'),
+      },
+    },
   ],
 };

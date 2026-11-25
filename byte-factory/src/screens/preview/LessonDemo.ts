@@ -3,9 +3,16 @@ import { GridView, fitTileSize } from '../../animation/GridView';
 import { TracePlayer } from '../../animation/TracePlayer';
 import { runWorkspace } from '../../interpreter/interpreter';
 import { LessonDemo as LessonDemoData } from '../../lessons/types';
+import { gameTheme } from '../level/gameTheme';
+import '../../blocks/movement';
+import '../../blocks/sensors';
+import '../../blocks/events';
+
+// Demo grids are small, so let their tiles grow past the level's 48px (the sprites are 24px pixel art).
+const MAX_DEMO_TILE = 72;
 
 /**
- * The "example" card: a read-only Blockly program next to a small grid, plus a Run Demo button.
+ * The "example" card: a read-only Blockly program next to a small grid.
  * Uses the real interpreter, so the demo behaves exactly like the level will.
  */
 export class LessonDemo {
@@ -15,27 +22,43 @@ export class LessonDemo {
 
   constructor(private readonly demo: LessonDemoData) {}
 
-  /** Build the workspace and grid inside the two containers. */
+  /** Build the workspace and grid. Both containers must already be on the page, so they have a size. */
   mount(blocksEl: HTMLElement, gridEl: HTMLDivElement): void {
-    // TODO:
-    // 1. Blockly.inject(blocksEl, { readOnly: true, ... }) and load demo.blocks with
-    //    Blockly.serialization.workspaces.load. Reuse LevelScreen's gameTheme (export it first).
-    // 2. new GridView(gridEl, demo.map, fitTileSize(demo.map, gridEl.clientWidth))
-    // 3. new TracePlayer(view)
+    const { map, blocks } = this.demo;
+    const ws = Blockly.inject(blocksEl, {
+      readOnly: true,
+      theme: gameTheme,
+      move: { scrollbars: false, drag: false, wheel: false },
+      zoom: { startScale: 1.2 },
+    });
+    Blockly.serialization.workspaces.load(blocks, ws);
+
+    const view = new GridView(gridEl, map, fitTileSize(map, gridEl.clientWidth, MAX_DEMO_TILE));
+    this.ws = ws;
+    this.view = view;
+    this.player = new TracePlayer(view);
   }
 
   /** Run the demo program once, highlighting each block as it runs. */
   async run(): Promise<void> {
-    // TODO: runWorkspace(ws, demo.map), then player.play(result.trace, demo.map.start, { onStep })
-    // and highlight blocks like LevelScreen does. Clear the highlight when it finishes.
-  }
+    const { ws, player } = this;
+    if (!ws || !player) return;
 
-  /** Stop playback and put the robot back on its start tile. */
-  reset(): void {
-    // TODO
+    const result = runWorkspace(ws, this.demo.map);
+    const playback = await player.play(result.trace, this.demo.map.start, {
+      onStep: (step) => ws.highlightBlock(step.blockId),
+    });
+    // Destroyed mid-run (the player changed page or left the screen).
+    if (playback === 'stopped' || this.ws !== ws) return;
+    ws.highlightBlock(null);
   }
 
   destroy(): void {
-    // TODO: stop the player, dispose the workspace, destroy the view (same order as LevelScreen.unmount)
+    this.player?.stop();
+    this.ws?.dispose();
+    this.view?.destroy();
+    this.ws = null;
+    this.view = null;
+    this.player = null;
   }
 }

@@ -14,6 +14,7 @@ import { Level } from '../../levels/types';
 import { SaveController } from '../../saves/saveController';
 import { toolboxFor } from '../../toolbox';
 import { Validator } from '../../validator/validator';
+import { gameTheme } from './gameTheme';
 import { StartBlockDragger } from './StartBlockDragger';
 import '../../blocks/movement';
 import '../../blocks/actions';
@@ -33,25 +34,6 @@ export type LevelScreenOptions = {
   onExit: () => void;
   onContinue?: () => void;
 };
-
-const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
-  name: 'gameTheme',
-  base: Blockly.Themes.Classic,
-  fontStyle: {
-    family: 'monospace',
-    size: 12,
-    weight: 'bold',
-  },
-  componentStyles: {
-    workspaceBackgroundColour: '#07100c',
-    toolboxBackgroundColour: '#0e1711',
-    toolboxForegroundColour: '#e5eee4',
-    flyoutBackgroundColour: '#17231b',
-    flyoutForegroundColour: '#e5eee4',
-    flyoutOpacity: 1,
-    scrollbarColour: '#56616e',
-  },
-});
 
 const TEMPLATE = `
   <div class="level-screen">

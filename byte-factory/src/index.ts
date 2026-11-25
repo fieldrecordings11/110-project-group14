@@ -8,12 +8,14 @@ import './index.css';
 import { ScreenManager } from './app/ScreenManager';
 import { ROADMAP_ENTRIES, getEntryLevel, toRoadmapLevels } from './app/roadmapEntries';
 import { HangmanMinigame } from './hangman/HangmanMinigame';
+import { getLesson } from './lessons';
 import { LevelScreen } from './screens/level/LevelScreen';
+import { LevelPreviewScreen } from './screens/preview/LevelPreviewScreen';
 import { MenuScreenController } from './screens/menu/MenuScreenController';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { loadRoadmapProgress, saveRoadmapProgress } from './screens/roadmap-progress';
 
-// App flow: main menu -> roadmap -> a level or the Hangman minigame -> back to the roadmap.
+// App flow: main menu -> roadmap -> a level (after its lesson) or the Hangman minigame -> back to the roadmap.
 const root = document.getElementById('app');
 if (!root) {
   throw new Error(`div with id 'app' not found`);
@@ -64,16 +66,32 @@ const openEntry = (id: string) => {
         openEntry(nextEntry.id);
       }
     }
-    // TODO(preview): if getLesson(entry.levelId) exists, show LevelPreviewScreen first and
-    // move this app.show(new LevelScreen(...)) into its onStart; onBack -> showRoadmap.
-    app.show(
-      new LevelScreen({
-        level: getEntryLevel(entry.levelId),
-        onComplete: () => markComplete(entry.id),
-        onExit: showRoadmap,
-        onContinue: onContinue
-      }),
-    );
+    const level = getEntryLevel(entry.levelId);
+    const startLevel = () =>
+      app.show(
+        new LevelScreen({
+          level,
+          onComplete: () => markComplete(entry.id),
+          onExit: showRoadmap,
+          onContinue: onContinue
+        }),
+      );
+
+    // Show the level's lesson first, if it has one.
+    const lesson = getLesson(level.id);
+    if (lesson && lesson.pages.length > 0) {
+      app.show(
+        new LevelPreviewScreen({
+          level,
+          levelNumber: currentIndex + 1,
+          lesson,
+          onStart: startLevel,
+          onBack: showRoadmap,
+        }),
+      );
+    } else {
+      startLevel();
+    }
   } else {
     // Hangman opens on top of the roadmap; redraw the roadmap afterwards so it unlocks the next stop.
     hangman.open(entry.questionsFor, (result) => {

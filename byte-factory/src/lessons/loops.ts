@@ -1,4 +1,5 @@
 import { loopsLevel } from '../levels/loops';
+import { demoProgram } from './demoProgram';
 import { Lesson } from './types';
 
 export const loopsLesson: Lesson = {
@@ -36,6 +37,22 @@ export const loopsLesson: Lesson = {
           'If Byte can never reach the star, the game stops the program for you, so check your pattern and try again.',
       ],
     },
-    // TODO: example page using "repeat until" + "Standing on finish" on a small grid.
+    {
+      kind: 'example',
+      caption:
+        '"Move right" is inside the loop only once, but it runs five times: ' +
+        'the loop repeats it until Byte is standing on the finish.',
+      demo: {
+        map: { width: 6, height: 1, start: { x: 0, y: 0 }, goal: { x: 5, y: 0 }, walls: [] },
+        blocks: demoProgram({
+          type: 'controls_whileUntil',
+          fields: { MODE: 'UNTIL' },
+          inputs: {
+            BOOL: { block: { type: 'on_finish_grid' } },
+            DO: { block: { type: 'move_right' } },
+          },
+        }),
+      },
+    },
   ],
 };
