@@ -1,4 +1,5 @@
 import { GridMap } from '../interpreter/types';
+import { startBlockState } from './startBlock';
 import { Level } from './types';
 
 export const conditionalsMap: GridMap = {
@@ -39,4 +40,5 @@ export const conditionalsLevel: Level = {
     'Use "if / else": if there is a puddle to the right, jump right, otherwise move right. ' +
     'Put it inside "repeat until" so the robot keeps checking until it reaches the star.',
   map: conditionalsMap,
+  startState: startBlockState,
 };

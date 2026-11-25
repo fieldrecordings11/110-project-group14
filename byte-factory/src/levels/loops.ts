@@ -1,5 +1,6 @@
 import { GridMap, Position } from '../interpreter/types';
 import { wallsExcept } from './grid';
+import { startBlockState } from './startBlock';
 import { Level } from './types';
 
 const STAIRS: Position[] = [
@@ -39,4 +40,5 @@ export const loopsLevel: Level = {
     'Put the moves that repeat inside "repeat until" with "Standing on finish", ' +
     'so the loop keeps going until the robot reaches the star.',
   map: loopsMap,
+  startState: startBlockState,
 };

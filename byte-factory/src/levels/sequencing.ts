@@ -1,4 +1,5 @@
 import { GridMap } from '../interpreter/types';
+import { startBlockState } from './startBlock';
 import { Level } from './types';
 
 export const sequencingMap: GridMap = {
@@ -26,4 +27,5 @@ export const sequencingLevel: Level = {
   instructions:
     'Blocks run in order, from top to bottom. Stack move blocks to guide the robot around the walls to the star.',
   map: sequencingMap,
+  startState: startBlockState,
 };

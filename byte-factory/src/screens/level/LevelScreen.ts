@@ -6,6 +6,7 @@ import { TracePlayer } from '../../animation/TracePlayer';
 import { forBlock as moveGeneration } from '../../generators/moveGeneration';
 import { actionBlock as actionGeneration } from '../../generators/actionGeneration';
 import { sensorBlock as sensorGeneration } from '../../generators/sensorGeneration';
+import { eventBlock as eventGeneration } from '../../generators/eventGeneration';
 import { generateCode, runCode } from '../../interpreter/interpreter';
 import { levelRegistry } from '../../levels';
 import { LevelLoader } from '../../levels/loader';
@@ -13,15 +14,19 @@ import { Level } from '../../levels/types';
 import { SaveController } from '../../saves/saveController';
 import { toolboxFor } from '../../toolbox';
 import { Validator } from '../../validator/validator';
+import { gameTheme } from './gameTheme';
+import { StartBlockDragger } from './StartBlockDragger';
 import '../../blocks/movement';
 import '../../blocks/actions';
 import '../../blocks/sensors';
+import '../../blocks/events';
 import './level.css';
 
 // Register the blocks' generators with Blockly
 Object.assign(javascriptGenerator.forBlock, moveGeneration);
 Object.assign(javascriptGenerator.forBlock, actionGeneration);
 Object.assign(javascriptGenerator.forBlock, sensorGeneration);
+Object.assign(javascriptGenerator.forBlock, eventGeneration);
 
 export type LevelScreenOptions = {
   level: Level;
@@ -30,25 +35,6 @@ export type LevelScreenOptions = {
   onExit: () => void;
   onContinue?: () => void;
 };
-
-const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
-  name: 'gameTheme',
-  base: Blockly.Themes.Classic,
-  fontStyle: {
-    family: 'monospace',
-    size: 12,
-    weight: 'bold',
-  },
-  componentStyles: {
-    workspaceBackgroundColour: '#07100c',
-    toolboxBackgroundColour: '#0e1711',
-    toolboxForegroundColour: '#e5eee4',
-    flyoutBackgroundColour: '#17231b',
-    flyoutForegroundColour: '#e5eee4',
-    flyoutOpacity: 1,
-    scrollbarColour: '#56616e',
-  },
-});
 
 const TEMPLATE = `
   <div class="level-screen">
@@ -142,6 +128,10 @@ export class LevelScreen implements Screen {
     const ws = Blockly.inject(find<HTMLElement>('blocklyDiv'), {
       toolbox: toolboxFor(level.allowedBlocks),
       theme: gameTheme,
+      // Loading a level clears the workspace, which puts the start block in the trash can.
+      // Capping it at one stops it being dragged back out, duplicated or pasted.
+      maxInstances: { start: 1 },
+      plugins: { blockDragger: StartBlockDragger },
     });
     // Load the level's starting blocks, if any, with a clean undo history.
     new LevelLoader(ws, levelRegistry).loadLevel(level);
