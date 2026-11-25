@@ -12,7 +12,7 @@ export interface SaveFilePayload {
 
 export type ImportResult =
   | {ok: true}
-  | {ok: false; message: string};
+  | {ok: false; message: string; saveFailed?: boolean};
 
 /**
  * Serializes the workspace and level metadata into a downloadable .json file.
@@ -71,7 +71,16 @@ export const importWorkspaceFromFile = async (
 
     Blockly.serialization.workspaces.load(parsed.workspace, workspace);
     workspace.clearUndo();
-    save(workspace, expectedLevelId);
+
+    const saveResult = save(workspace, expectedLevelId);
+    if (!saveResult.ok) {
+      return {
+        ok: false,
+        message: `Blocks loaded, but progress failed to save: ${saveResult.message}`,
+        saveFailed: true,
+      };
+    }
+
     return {ok: true};
   } catch (err) {
     console.error('Failed to import save file:', err);
