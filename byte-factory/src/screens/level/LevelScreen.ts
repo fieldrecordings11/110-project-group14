@@ -16,6 +16,7 @@ import { Validator } from '../../validator/validator';
 import '../../blocks/movement';
 import '../../blocks/actions';
 import '../../blocks/sensors';
+import './level.css';
 
 // Register the blocks' generators with Blockly
 Object.assign(javascriptGenerator.forBlock, moveGeneration);
@@ -88,6 +89,19 @@ const TEMPLATE = `
         <button id="resultRoadmapButton" type="button">Return to Roadmap</button>
       </div>
     </dialog>
+
+    <dialog id="saveErrorDialog" class="error-dialog" role="alertdialog" aria-labelledby="saveErrorTitle" aria-describedby="saveErrorMessage">
+      <h2 id="saveErrorTitle">⚠️ Progress Not Saved</h2>
+      <p id="saveErrorMessage"></p>
+      <p class="error-dialog-hint">
+        Your changes are still active in this session, but they will be lost if you close or refresh the page.
+      </p>
+      <div id="saveErrorActions">
+        <button id="retrySaveButton" type="button">Retry Save</button>
+        <button id="exportFallbackButton" type="button">Export Save File</button>
+        <button id="dismissSaveErrorButton" type="button">Dismiss</button>
+      </div>
+    </dialog>
   </div>`;
 
 /** A Blockly level: validate -> interpret into a trace -> animate the trace on the grid. */
@@ -116,6 +130,10 @@ export class LevelScreen implements Screen {
     const keepEditingButton = find<HTMLButtonElement>('keepEditingButton');
     const continueButton = find<HTMLButtonElement>('continueButton');
     const importFileInput = find<HTMLInputElement>('importFileInput');
+
+    const saveErrorDialog = find<HTMLDialogElement>('saveErrorDialog');
+    const saveErrorMessage = find<HTMLElement>('saveErrorMessage');
+
     find<HTMLElement>('levelTitle').textContent = level.title;
     find<HTMLElement>('levelInstructions').textContent = level.instructions;
     find<HTMLElement>('blockLimit').textContent = `Block limit: ${level.blockLimit}`;
@@ -141,14 +159,42 @@ export class LevelScreen implements Screen {
       statusEl.className = tone;
     };
 
+    const showSaveErrorPopup = (reason: string) => {
+      saveErrorMessage.textContent = reason;
+      setStatus('Warning: Level progress failed to save.', 'error');
+      if (!saveErrorDialog.open) {
+        saveErrorDialog.showModal();
+      }
+    };
+
     // Show the generated code (without the interpreter's tracking calls).
     const showCode = () => {
       codeEl.textContent = javascriptGenerator.workspaceToCode(ws);
     };
 
     // SaveController handles the change listener (code preview + per-level auto-save).
-    const saveCtrl = new SaveController(ws, level, showCode);
+    const saveCtrl = new SaveController(ws, level, showCode, showSaveErrorPopup);
     this.saveCtrl = saveCtrl;
+
+    find<HTMLButtonElement>('retrySaveButton').addEventListener('click', () => {
+      const result = saveCtrl.saveNow(true);
+      if (result.ok) {
+        saveErrorDialog.close();
+        setStatus('Level progress saved.', 'success');
+      } else {
+        saveErrorMessage.textContent = result.message;
+      }
+    });
+
+    find<HTMLButtonElement>('exportFallbackButton').addEventListener('click', () => {
+      const levelId = saveCtrl.exportSave();
+      saveErrorDialog.close();
+      setStatus(`Exported backup save for "${levelId}".`, 'info');
+    });
+
+    find<HTMLButtonElement>('dismissSaveErrorButton').addEventListener('click', () => {
+      saveErrorDialog.close();
+    });
 
     const run = async () => {
       player.stop();
