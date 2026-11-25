@@ -73,6 +73,26 @@ describe('roadmap progress', () => {
 });
 
 describe('roadmap screen', () => {
+  it('numbers levels consecutively while selecting their original progress ids', () => {
+    const container = document.getElementById('roadmap')!;
+    const select = vi.fn();
+    const numberedLevels: RoadmapLevel[] = [
+      {id: '1', title: 'Sequencing', y: 350, status: 'completed'},
+      {id: '3', title: 'Loops', y: 220, status: 'available'},
+      {id: '4', title: 'Conditionals', y: 90, status: 'locked'},
+    ];
+    const destroy = showRoadmap(container, numberedLevels, select);
+    const numbers = Array.from(container.querySelectorAll('.roadmap-number'));
+    expect(numbers.map((number) => number.textContent)).toEqual(['1', '2', '3']);
+    const buttons = container.querySelectorAll<HTMLButtonElement>('.roadmap-level');
+    expect(buttons[1].getAttribute('aria-label')).toBe('Level 2: Loops, available');
+    buttons[1].click();
+    expect(select).toHaveBeenCalledExactlyOnceWith('3');
+    expect(container.querySelector('.roadmap-message')?.textContent).toBe('Level 2: Loops selected.');
+    expect(buttons[2].disabled).toBe(true);
+    destroy();
+  });
+
   it('runs the preview selection, completion, return, and reset flow', () => {
     document.body.innerHTML = `
       <button id="complete-preview-level" disabled>Complete</button>

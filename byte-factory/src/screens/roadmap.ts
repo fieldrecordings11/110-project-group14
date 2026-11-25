@@ -83,7 +83,9 @@ export function showRoadmap(
   }));
 
 
-  for (const level of levels) {
+  for (let index = 0; index < levels.length; index++) {
+    const level = levels[index];
+    const levelNumber = index + 1;
     let color = '#617178';
     if (level.status === 'completed') {
       color = '#76e2a2';
@@ -97,13 +99,13 @@ export function showRoadmap(
     button.className = `roadmap-level roadmap-level--${level.status}`;
     button.style.top = `${level.y}px`;
     button.disabled = level.status === 'locked';
-    button.setAttribute('aria-label', `Level ${level.id}: ${level.title}, ${level.status}`);
+    button.setAttribute('aria-label', `Level ${levelNumber}: ${level.title}, ${level.status}`);
     if (level.status === 'available') {
       button.setAttribute('aria-current', 'step');
     }
     const number = document.createElement('span');
     number.className = 'roadmap-number';
-    number.textContent = level.id;
+    number.textContent = String(levelNumber);
     const label = document.createElement('span');
     label.className = 'roadmap-label';
     label.textContent = `${level.title} · ${level.status}`;
@@ -111,7 +113,7 @@ export function showRoadmap(
     button.addEventListener('click', () => {
       const message = container.querySelector('.roadmap-message');
       if (message) {
-        message.textContent = `Level ${level.id}: ${level.title} selected.`;
+        message.textContent = `Level ${levelNumber}: ${level.title} selected.`;
       }
 
       onSelectLevel(level.id);
