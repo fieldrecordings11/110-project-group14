@@ -87,6 +87,37 @@ describe('saveFile', () => {
     expect(reloadWs.getAllBlocks(false)).toHaveLength(1);
   });
 
+  it('returns saveFailed when blocks import into workspace but localStorage fails', async () => {
+    const sourceWs = new Blockly.Workspace();
+    sourceWs.newBlock('test_move');
+
+    const payload: SaveFilePayload = {
+      version: 1,
+      levelId: 'loops',
+      exportedAt: new Date().toISOString(),
+      workspace: Blockly.serialization.workspaces.save(sourceWs),
+    };
+
+    vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    });
+
+    const targetWs = new Blockly.Workspace();
+    const result = await importWorkspaceFromFile(
+      makeJsonFile(payload),
+      targetWs,
+      'loops',
+    );
+
+    expect(targetWs.getAllBlocks(false)).toHaveLength(1);
+    expect(result).toEqual({
+      ok: false,
+      saveFailed: true,
+      message:
+        'Blocks loaded, but progress failed to save: Browser storage is full. Your progress could not be saved locally.',
+    });
+  });
+
   it('rejects a save file meant for a different level', async () => {
     const payload: SaveFilePayload = {
       version: 1,

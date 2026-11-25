@@ -63,6 +63,7 @@ export class SaveController {
   loadLevel(level: Level, useSaved = true): void {
     this.isLoading = true;
     this.hasNotifiedSaveError = false;
+    Blockly.Events.disable();
     try {
       if (this.workspace instanceof Blockly.WorkspaceSvg) {
         this.workspace.highlightBlock(null);
@@ -78,6 +79,7 @@ export class SaveController {
       this.activeLevel = level;
       this.onWorkspaceChanged();
     } finally {
+      Blockly.Events.enable();
       this.isLoading = false;
     }
   }

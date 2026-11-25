@@ -2,10 +2,17 @@ import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import * as Blockly from 'blockly/core';
 import type {Level} from '../levels/types';
 import {SaveController} from '../saves/saveController';
+import {SaveFilePayload} from '../saves/saveFile';
 import {save, load} from '../saves/serialization';
 
 const makeLevel = (id: string, startState?: object): Level =>
   ({id, startState}) as Level;
+
+const makeJsonFile = (content: unknown, name = 'save.json'): File =>
+  ({
+    name,
+    text: async () => JSON.stringify(content),
+  }) as unknown as File;
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -31,7 +38,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.runAllTimers();
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const createStartState = (): object => {
@@ -123,5 +132,109 @@ describe('SaveController', () => {
     const verifyWs = new Blockly.Workspace();
     load(verifyWs, 'resettable');
     expect(verifyWs.getAllBlocks(false)).toHaveLength(1);
+  });
+
+  it('notifies onSaveError once on consecutive auto-save failures and resets after recovery', () => {
+    const setItemSpy = vi
+      .spyOn(window.localStorage, 'setItem')
+      .mockImplementation(() => {
+        throw new DOMException('Quota exceeded', 'QuotaExceededError');
+      });
+
+    const ws = new Blockly.Workspace();
+    const onChanged = vi.fn();
+    const onSaveError = vi.fn();
+    const controller = new SaveController(
+      ws,
+      makeLevel('sequencing'),
+      onChanged,
+      onSaveError,
+    );
+
+    // First block change triggers the error callback
+    ws.newBlock('test_move');
+    vi.runAllTimers();
+    expect(onChanged).toHaveBeenCalled();
+    expect(onSaveError).toHaveBeenCalledTimes(1);
+    expect(onSaveError).toHaveBeenCalledWith(
+      'Browser storage is full. Your progress could not be saved locally.',
+    );
+
+    // Second block change while still failing should NOT spam onSaveError again
+    ws.newBlock('test_move');
+    vi.runAllTimers();
+    expect(onSaveError).toHaveBeenCalledTimes(1);
+
+    // Explicit retry (forceNotify = true) still notifies if it fails
+    expect(controller.saveNow(true).ok).toBe(false);
+    expect(onSaveError).toHaveBeenCalledTimes(2);
+
+    // Restore working storage -> saveNow succeeds and clears the error flag
+    setItemSpy.mockRestore();
+    expect(controller.saveNow(true)).toEqual({ok: true});
+
+    // Future failures will notify again
+    vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    });
+    ws.newBlock('test_move');
+    vi.runAllTimers();
+    expect(onSaveError).toHaveBeenCalledTimes(3);
+  });
+
+  it('notifies onSaveError when resetBlocks() fails to save', () => {
+    const ws = new Blockly.Workspace();
+    const onSaveError = vi.fn();
+    const controller = new SaveController(
+      ws,
+      makeLevel('resettable', createStartState()),
+      vi.fn(),
+      onSaveError,
+    );
+
+    vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    });
+
+    controller.resetBlocks();
+    vi.runAllTimers();
+
+    expect(onSaveError).toHaveBeenCalledWith(
+      'Browser storage is full. Your progress could not be saved locally.',
+    );
+  });
+
+  it('notifies onSaveError when importSave() loads blocks but fails to persist them', async () => {
+    const sourceWs = new Blockly.Workspace();
+    sourceWs.newBlock('test_move');
+    const payload: SaveFilePayload = {
+      version: 1,
+      levelId: 'loops',
+      exportedAt: new Date().toISOString(),
+      workspace: Blockly.serialization.workspaces.save(sourceWs),
+    };
+
+    vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Quota exceeded', 'QuotaExceededError');
+    });
+
+    const ws = new Blockly.Workspace();
+    const onChanged = vi.fn();
+    const onSaveError = vi.fn();
+    const controller = new SaveController(
+      ws,
+      makeLevel('loops'),
+      onChanged,
+      onSaveError,
+    );
+
+    const result = await controller.importSave(makeJsonFile(payload));
+
+    expect(result.ok).toBe(false);
+    expect(ws.getAllBlocks(false)).toHaveLength(1);
+    expect(onChanged).toHaveBeenCalled();
+    expect(onSaveError).toHaveBeenCalledWith(
+      'Blocks loaded, but progress failed to save: Browser storage is full. Your progress could not be saved locally.',
+    );
   });
 });

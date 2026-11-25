@@ -28,10 +28,10 @@ describe('serialization', () => {
   it('saves and loads blocks isolated per levelId', () => {
     const ws1 = new Blockly.Workspace();
     ws1.newBlock('test_move');
-    save(ws1, 'level_1');
+    expect(save(ws1, 'level_1')).toEqual({ok: true});
 
     const ws2 = new Blockly.Workspace();
-    save(ws2, 'level_2'); // empty workspace
+    expect(save(ws2, 'level_2')).toEqual({ok: true}); // empty workspace
 
     // Load level_1 into a fresh workspace
     const target = new Blockly.Workspace();
@@ -75,5 +75,47 @@ describe('serialization', () => {
     const checkWs = new Blockly.Workspace();
     expect(load(checkWs, 'level_1')).toBe(false);
     expect(load(checkWs, 'level_2')).toBe(true);
+  });
+
+  it('returns an error when window.localStorage is undefined', () => {
+    vi.stubGlobal('window', {localStorage: undefined});
+    const ws = new Blockly.Workspace();
+    ws.newBlock('test_move');
+
+    const result = save(ws, 'level_1');
+    expect(result).toEqual({
+      ok: false,
+      message: 'Local storage is unavailable in this browser.',
+    });
+  });
+
+  it('returns a quota error message when localStorage throws QuotaExceededError', () => {
+    vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Storage full', 'QuotaExceededError');
+    });
+
+    const ws = new Blockly.Workspace();
+    ws.newBlock('test_move');
+
+    const result = save(ws, 'level_1');
+    expect(result).toEqual({
+      ok: false,
+      message: 'Browser storage is full. Your progress could not be saved locally.',
+    });
+  });
+
+  it('returns a blocked-storage message when localStorage throws SecurityError', () => {
+    vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new DOMException('Access denied', 'SecurityError');
+    });
+
+    const ws = new Blockly.Workspace();
+    ws.newBlock('test_move');
+
+    const result = save(ws, 'level_1');
+    expect(result).toEqual({
+      ok: false,
+      message: 'Browser storage is blocked (e.g. private browsing or disabled cookies).',
+    });
   });
 });
