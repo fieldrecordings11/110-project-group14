@@ -30,8 +30,8 @@ const config = {
         use: ['style-loader', 'css-loader'],
       },
       {
-        // Include imported PNGs in the build and provide their URLs
-        test: /\.png$/i,
+        // Include sprites and local fonts in the build.
+        test: /\.(png|ttf)$/i,
         type: 'asset/resource',
       }
     ],
