@@ -31,9 +31,9 @@ describe('ScreenManager', () => {
 
 describe('toRoadmapLevels', () => {
   const entries: RoadmapEntry[] = [
-    { kind: 'hangman', id: 'a', title: 'A', questionsFor: 'x' },
-    { kind: 'hangman', id: 'b', title: 'B', questionsFor: 'x' },
-    { kind: 'hangman', id: 'c', title: 'C', questionsFor: 'x' },
+    { kind: 'level', id: 'a', levelId: sequencingLevel.id },
+    { kind: 'level', id: 'b', levelId: sequencingLevel.id },
+    { kind: 'level', id: 'c', levelId: sequencingLevel.id },
   ];
 
   it('unlocks only the first stop when nothing is completed', () => {
@@ -57,10 +57,30 @@ describe('toRoadmapLevels', () => {
 });
 
 describe('ROADMAP_ENTRIES', () => {
-  it('goes Sequencing, Hangman (on the sequencing questions), Loops, Conditionals', () => {
-    expect(toRoadmapLevels(ROADMAP_ENTRIES, []).map((l) => l.title)).toEqual(['Sequencing', 'Hangman', 'Loops', 'Conditionals']);
-    const hangman = ROADMAP_ENTRIES[1];
-    expect(hangman.kind === 'hangman' && hangman.questionsFor).toBe(sequencingLevel.id);
+  it('contains only coding levels in play order', () => {
+    expect(toRoadmapLevels(ROADMAP_ENTRIES, []).map((l) => l.title))
+      .toEqual(['Sequencing', 'Loops', 'Conditionals']);
+  });
+
+  it('unlocks Loops after Sequencing without requiring Hangman', () => {
+    expect(toRoadmapLevels(ROADMAP_ENTRIES, ['1']).map((l) => l.status))
+      .toEqual(['completed', 'available', 'locked']);
+  });
+
+  it('unlocks Conditionals after Loops', () => {
+    expect(toRoadmapLevels(ROADMAP_ENTRIES, ['1', '3']).map((l) => l.status))
+      .toEqual(['completed', 'completed', 'available']);
+  });
+
+  it('preserves existing level progress ids', () => {
+    expect(ROADMAP_ENTRIES.map((entry) => entry.id)).toEqual(['1', '3', '4']);
+    expect(toRoadmapLevels(ROADMAP_ENTRIES, ['1', '2', '3', '4']).map((l) => l.status))
+      .toEqual(['completed', 'completed', 'completed']);
+  });
+
+  it('does not treat old Hangman progress as a completed coding level', () => {
+    expect(toRoadmapLevels(ROADMAP_ENTRIES, ['2']).map((l) => l.status))
+      .toEqual(['available', 'locked', 'locked']);
   });
 
   it('has unique ids', () => {
@@ -70,12 +90,12 @@ describe('ROADMAP_ENTRIES', () => {
 
   it('only points to levels that exist', () => {
     for (const entry of ROADMAP_ENTRIES) {
-      if (entry.kind === 'level') expect(() => getEntryLevel(entry.levelId)).not.toThrow();
+      expect(() => getEntryLevel(entry.levelId)).not.toThrow();
     }
   });
 
   it('includes every level', () => {
-    const onRoadmap = ROADMAP_ENTRIES.map((e) => (e.kind === 'level' ? e.levelId : undefined));
+    const onRoadmap = ROADMAP_ENTRIES.map((e) => e.levelId);
     for (const level of levels) {
       expect(onRoadmap).toContain(level.id);
     }
