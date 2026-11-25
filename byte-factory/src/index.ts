@@ -14,6 +14,7 @@ import { LevelPreviewScreen } from './screens/preview/LevelPreviewScreen';
 import { MenuScreenController } from './screens/menu/MenuScreenController';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { loadRoadmapProgress, saveRoadmapProgress } from './screens/roadmap-progress';
+import { MainGameTutorial, shouldShowMainGameTutorial } from './tutorial/MainGameTutorial';
 
 // App flow: main menu -> roadmap -> a level (after its lesson) or the Hangman minigame -> back to the roadmap.
 const root = document.getElementById('app');
@@ -23,6 +24,7 @@ if (!root) {
 
 const app = new ScreenManager(root);
 const hangman = new HangmanMinigame();
+const tutorial = new MainGameTutorial();
 let completedIds = loadRoadmapProgress();
 
 const markComplete = (id: string) => {
@@ -39,7 +41,13 @@ const openHangmanFromMenu = () => {
   hangman.open(entry.questionsFor, () => showMenu());
 };
 
-const showMenu = () => app.show(new MenuScreenController(showRoadmap, openHangmanFromMenu));
+// Main Game opens the roadmap with the level-screen tutorial popped up on top of it.
+const startMainGame = () => {
+  showRoadmap();
+  if (shouldShowMainGameTutorial()) tutorial.open();
+};
+
+const showMenu = () => app.show(new MenuScreenController(startMainGame, openHangmanFromMenu));
 
 const showRoadmap = () =>
   app.show(
