@@ -7,16 +7,106 @@ interface TriviaQuestion {
 }
 
 const QUESTIONS: TriviaQuestion[] = [
-	{ question: "What does HTML stand for?", choices: ["HyperText Markup Language", "High Tech Modern Language", "HyperTransfer Markup Logic", "Home Tool Markup Language"], correctIndex: 0 },
-	{ question: "How many bits are in a byte?", choices: ["4", "16", "8", "32"], correctIndex: 2 },
-	{ question: "Which language runs natively in web browsers?", choices: ["Python", "Java", "C++", "JavaScript"], correctIndex: 3 },
-	{ question: "What does CPU stand for?", choices: ["Central Processing Unit", "Computer Personal Unit", "Core Program Utility", "Central Program Updater"], correctIndex: 0 },
-	{ question: "Which data structure follows Last-In, First-Out (LIFO)?", choices: ["Queue", "Stack", "Array", "Graph"], correctIndex: 1 },
-	{ question: "What is the decimal number 5 in binary?", choices: ["110", "011", "111", "101"], correctIndex: 3 },
-	{ question: "Which company created TypeScript?", choices: ["Google", "Apple", "Microsoft", "Amazon"], correctIndex: 2 },
-	{ question: "What is CSS mainly used for?", choices: ["Database queries", "Styling web pages", "Server logic", "Encrypting data"], correctIndex: 1 },
-	{ question: "What does RAM stand for?", choices: ["Read Always Memory", "Random Access Memory", "Run Active Module", "Rapid Array Machine"], correctIndex: 1 },
-	{ question: "Which symbol starts a single-line comment in TypeScript?", choices: ["#", "<!--", "//", "--"], correctIndex: 2 },
+	{
+		question: "What is the purpose of a loop in programming?",
+		choices: [
+			"To store information",
+			"To repeat instructions",
+			"To delete information",
+			"To make a decision",
+		],
+		correctIndex: 1,
+	},
+	{
+		question: "What is a variable used for?",
+		choices: [
+			"To store information",
+			"To repeat an action",
+			"To stop a program",
+			"To check if something is true",
+		],
+		correctIndex: 0,
+	},
+	{
+		question: "What does a conditional help a program do?",
+		choices: [
+			"Repeat an action forever",
+			"Store a number",
+			"Make decisions based on certain conditions",
+			"Delete a variable",
+		],
+		correctIndex: 2,
+	},
+	{
+		question: "What is an example of a Boolean value?",
+		choices: [
+			"\"Hello\"",
+			"25",
+			"3.14",
+			"True",
+		],
+		correctIndex: 3,
+	},
+	{
+		question: "What happens when a loop's condition is no longer true?",
+		choices: [
+			"The loop stops repeating",
+			"The program deletes itself",
+			"The loop starts over automatically",
+			"The variable disappears",
+		],
+		correctIndex: 0,
+	},
+	{
+		question: "In a video game, what type of information would a score variable store?",
+		choices: [
+			"The player's name",
+			"The player's current points",
+			"The game's background music",
+			"The color of the screen",
+		],
+		correctIndex: 1,
+	},
+	{
+		question: "What is the difference between an If-Else statement and an If statement?",
+		choices: [
+			"An If-Else statement can choose between two possible actions",
+			"An If statement repeats instructions",
+			"An If-Else statement only works with numbers",
+			"There is no difference",
+		],
+		correctIndex: 0,
+	},
+	{
+		question: "Which data type is best for storing someone's name?",
+		choices: [
+			"Integer",
+			"Boolean",
+			"String",
+			"Float",
+		],
+		correctIndex: 2,
+	},
+	{
+		question: "What is an infinite loop?",
+		choices: [
+			"A loop that runs only once",
+			"A loop that repeats forever",
+			"A loop that stores information",
+			"A loop that makes decisions",
+		],
+		correctIndex: 1,
+	},
+	{
+		question: "In a game, how could a program check if a player has won?",
+		choices: [
+			"By checking whether the player's score has reached the required amount",
+			"By deleting the player's score",
+			"By repeating the same action forever",
+			"By changing the player's name",
+		],
+		correctIndex: 0,
+	},
 ];
 
 const CANVAS_WIDTH = 800;
