@@ -189,3 +189,38 @@ code {
   margin: 0.25rem 0 0;
   font-weight: bold;
 }
+
+#resultDialog {
+  background-color: #0e1711;
+  color: #e5eee4;
+  border: 3px solid #38483e;
+  padding: 24px;
+  width: 400px;
+  max-width: calc(100% - 64px);
+  font-family: inherit;
+}
+
+#resultDialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+#resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+#resultActions button {
+  background-color: #56616e;
+  color: #e5eee4;
+  border: 3px solid #17231b;
+  padding: 12px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#replayActions #replayButton {
+  background: #32cd42;
+  color: #07100c;
+}

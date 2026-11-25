@@ -20,6 +20,7 @@ export const sequencingMap: GridMap = {
  */
 export const sequencingLevel: Level = {
   id: 'sequencing',
+  title: 'Sequencing',
   allowedBlocks: ['move_up', 'move_down', 'move_left', 'move_right'],
   blockLimit: 10,
   instructions:

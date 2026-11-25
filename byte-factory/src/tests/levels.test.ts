@@ -7,6 +7,7 @@ import { Position } from '../interpreter/types';
 function makeLevel(id: string): Level {
     return {
         id,
+        title: `Level ${id}`,
         allowedBlocks: ['move_right'],
         blockLimit: 5,
         instructions: `Level ${id}`,
@@ -75,6 +76,7 @@ describe('level data', () => {
 
     it.each(levels.map((level) => [level.id, level]))('level %s is well-formed', (_id, level) => {
         expect(level.id).not.toBe('');
+        expect(level.title).not.toBe('');
         expect(level.instructions).not.toBe('');
         expect(level.allowedBlocks.length).toBeGreaterThan(0);
         expect(level.blockLimit).toBeGreaterThan(0);

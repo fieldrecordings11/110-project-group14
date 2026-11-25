@@ -8,6 +8,7 @@ import { Level } from '../levels/types';
 function makeLevel(id: string, startState?: object): Level {
     return {
         id,
+        title: `Level ${id}`,
         allowedBlocks: ['move_right'],
         blockLimit: 5,
         instructions: `Level ${id}`,

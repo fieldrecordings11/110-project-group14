@@ -24,6 +24,7 @@ export const conditionalsMap: GridMap = {
  */
 export const conditionalsLevel: Level = {
   id: 'conditionals',
+  title: 'Conditionals',
   allowedBlocks: [
     'move_right',
     'jump_right',

@@ -7,7 +7,8 @@ import { forBlock as moveGeneration } from '../../generators/moveGeneration';
 import { actionBlock as actionGeneration } from '../../generators/actionGeneration';
 import { sensorBlock as sensorGeneration } from '../../generators/sensorGeneration';
 import { generateCode, runCode } from '../../interpreter/interpreter';
-import { GridMap } from '../../interpreter/types';
+import { levelRegistry } from '../../levels';
+import { LevelLoader } from '../../levels/loader';
 import { Level } from '../../levels/types';
 import { SaveController } from '../../saves/saveController';
 import { toolboxFor } from '../../toolbox';
@@ -22,12 +23,11 @@ Object.assign(javascriptGenerator.forBlock, actionGeneration);
 Object.assign(javascriptGenerator.forBlock, sensorGeneration);
 
 export type LevelScreenOptions = {
-  title: string;
   level: Level;
-  map: GridMap;
   /** Called each time the robot reaches the goal. */
   onComplete: () => void;
   onExit: () => void;
+  onContinue?: () => void;
 };
 
 const gameTheme = Blockly.Theme.defineTheme('gameTheme', {
@@ -77,6 +77,17 @@ const TEMPLATE = `
         <pre id="generatedCode"><code></code></pre>
       </div>
     </div>
+
+    <dialog id="resultDialog" aria-labelledby="resultTitle">
+      <h2 id="resultTitle"></h2>
+      <p id="resultMessage"></p>
+      <div id="resultActions">
+        <button id="replayButton" type="button">Replay</button>
+        <button id="keepEditingButton" type="button">Try Again</button>
+        <button id="continueButton" type="button" hidden>Next Level</button>
+        <button id="resultRoadmapButton" type="button">Return to Roadmap</button>
+      </div>
+    </dialog>
   </div>`;
 
 /** A Blockly level: validate -> interpret into a trace -> animate the trace on the grid. */
@@ -90,15 +101,22 @@ export class LevelScreen implements Screen {
   constructor(private readonly options: LevelScreenOptions) {}
 
   mount(root: HTMLElement): void {
-    const { title, level, map } = this.options;
+    const { level } = this.options;
+    const { map } = level;
     root.innerHTML = TEMPLATE;
     const find = <T extends HTMLElement>(id: string) => root.querySelector(`#${id}`) as T;
 
     const codeEl = find<HTMLElement>('generatedCode').firstElementChild as HTMLElement;
     const statusEl = find<HTMLElement>('status');
     const runButton = find<HTMLButtonElement>('runButton');
+    const resultDialog = find<HTMLDialogElement>('resultDialog');
+    const resultTitle = find<HTMLElement>('resultTitle');
+    const resultMessage = find<HTMLElement>('resultMessage');
+    const replayButton = find<HTMLButtonElement>('replayButton');
+    const keepEditingButton = find<HTMLButtonElement>('keepEditingButton');
+    const continueButton = find<HTMLButtonElement>('continueButton');
     const importFileInput = find<HTMLInputElement>('importFileInput');
-    find<HTMLElement>('levelTitle').textContent = title;
+    find<HTMLElement>('levelTitle').textContent = level.title;
     find<HTMLElement>('levelInstructions').textContent = level.instructions;
     find<HTMLElement>('blockLimit').textContent = `Block limit: ${level.blockLimit}`;
     find<HTMLButtonElement>('backButton').addEventListener('click', this.options.onExit);
@@ -107,6 +125,8 @@ export class LevelScreen implements Screen {
       toolbox: toolboxFor(level.allowedBlocks),
       theme: gameTheme,
     });
+    // Load the level's starting blocks, if any, with a clean undo history.
+    new LevelLoader(ws, levelRegistry).loadLevel(level);
     // Shrink the tiles so wide grids fit the panel. Only the width is checked: the panel
     // scrolls vertically, so a tall grid still fits (no current level is taller than 6 tiles).
     const canvas = find<HTMLDivElement>('gameCanvas');
@@ -154,6 +174,19 @@ export class LevelScreen implements Screen {
       const solved = result.outcome === 'reached_goal';
       setStatus(result.message, solved ? 'success' : 'error');
       if (solved) this.options.onComplete();
+      if (solved) {
+        resultTitle.textContent = 'Level complete! 🏆';
+      } else {
+        resultTitle.textContent = 'Try again!';
+      }
+
+      resultMessage.textContent = result.message;
+
+      replayButton.hidden = !solved;
+      keepEditingButton.hidden = solved;
+      continueButton.hidden = !solved || !this.options.onContinue;
+
+      resultDialog.showModal();
     };
 
     const reset = () => {
@@ -172,6 +205,28 @@ export class LevelScreen implements Screen {
       runButton.disabled = false;
       setStatus('Blocks reset to default.', 'info');
     };
+
+    replayButton.addEventListener('click', () => {
+      resultDialog.close();
+      reset();
+    });
+
+    keepEditingButton.addEventListener('click', () => {
+      resultDialog.close();
+    });
+
+    continueButton.addEventListener('click', () => {
+      resultDialog.close();
+
+      if (this.options.onContinue) {
+        this.options.onContinue();
+      }
+    });
+
+    find<HTMLButtonElement>('resultRoadmapButton').addEventListener('click', () => {
+      resultDialog.close();
+      this.options.onExit();
+    });
 
     runButton.addEventListener('click', () => void run());
     find<HTMLButtonElement>('resetButton').addEventListener('click', reset);

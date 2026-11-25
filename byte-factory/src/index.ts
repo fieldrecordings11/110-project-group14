@@ -6,7 +6,7 @@
 
 import './index.css';
 import { ScreenManager } from './app/ScreenManager';
-import { ROADMAP_ENTRIES, toRoadmapLevels } from './app/roadmapEntries';
+import { ROADMAP_ENTRIES, getEntryLevel, toRoadmapLevels } from './app/roadmapEntries';
 import { HangmanMinigame } from './hangman/HangmanMinigame';
 import { LevelScreen } from './screens/level/LevelScreen';
 import { MenuScreenController } from './screens/menu/MenuScreenController';
@@ -29,7 +29,15 @@ const markComplete = (id: string) => {
   saveRoadmapProgress(completedIds);
 };
 
-const showMenu = () => app.show(new MenuScreenController(showRoadmap));
+const openHangmanFromMenu = () => {
+  // Reuse the Hangman entry that already exists on the roadmap
+  const entry = ROADMAP_ENTRIES.find((e) => e.kind !== 'level');
+  if (!entry) return;
+
+  hangman.open(entry.questionsFor, () => showMenu());
+};
+
+const showMenu = () => app.show(new MenuScreenController(showRoadmap, openHangmanFromMenu));
 
 const showRoadmap = () =>
   app.show(
@@ -45,13 +53,23 @@ const openEntry = (id: string) => {
   if (!entry) return;
 
   if (entry.kind === 'level') {
+    const gameLevels = ROADMAP_ENTRIES.filter((stop) => stop.kind === 'level');
+    const currentIndex = gameLevels.findIndex((stop) => stop.id === id);
+    const nextEntry = gameLevels[currentIndex + 1];
+
+    let onContinue: (() => void) | undefined;
+
+    if (nextEntry) {
+      onContinue = () => {
+        openEntry(nextEntry.id);
+      }
+    }
     app.show(
       new LevelScreen({
-        title: entry.title,
-        level: entry.level,
-        map: entry.map,
+        level: getEntryLevel(entry.levelId),
         onComplete: () => markComplete(entry.id),
         onExit: showRoadmap,
+        onContinue: onContinue
       }),
     );
   } else {
