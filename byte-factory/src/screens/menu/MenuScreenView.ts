@@ -1,114 +1,65 @@
 import Konva from 'konva';
-import type { Group } from "konva/lib/Group";
-import type { View } from "./View";
+import type { View } from './View';
+import robotUrl from '../../../assets/byte-robot-24.png';
 
+/** The home screen's robot illustration. Buttons and text live in the HTML. */
 export class MenuScreenView implements View {
-	private group: Konva.Group;
+  private readonly group = new Konva.Group();
+  private readonly robot = new Konva.Group({ x: 84, y: 52 });
+  private animation: Konva.Animation | null = null;
 
-	constructor(
-		onStartClick: () => void,
-		onHangmanClick: () => void = () => {},
-		onTriviaClick: () => void = () => {}
-	) {
-		this.group = new Konva.Group({ visible: true });
+  constructor() {
+    // A simple factory platform beneath Byte.
+    this.group.add(new Konva.Rect({
+      x: 36, y: 270, width: 288, height: 24,
+      fill: '#56616e', stroke: '#17231b', strokeWidth: 4,
+    }));
+    for (let x = 44; x < 320; x += 24) {
+      this.group.add(new Konva.Rect({
+        x, y: 276, width: 12, height: 12, fill: '#27373a',
+      }));
+    }
+    this.group.add(new Konva.Ellipse({
+      x: 180, y: 260, radiusX: 78, radiusY: 9,
+      fill: '#030906',
+    }));
 
-		// Title text
-		const title = new Konva.Text({
-			x: 800 / 2,
-			y: 150,
-			text: "BYTE FACTORY",
-			fontSize: 48,
-			fontFamily: "Arial",
-			fill: "White",
-			align: "center",
-		});
-		// Center the text using offsetX
-		title.offsetX(title.width() / 2);
-		this.group.add(title);
+    const image = new Image();
+    this.robot.add(new Konva.Image({
+      width: 192, height: 192, image: image,
+    }));
+    this.group.add(this.robot);
+    image.onload = () => {
+      this.group.getLayer()?.batchDraw();
+    };
+    image.src = robotUrl;
+  }
 
-		// Button layout
-		const buttonWidth = 200;
-		const buttonHeight = 60;
-		const buttonGap = 20; // space between buttons
-		const startY = 300;
-		const buttonX = 800 / 2 - buttonWidth / 2;
+  startAnimation(layer: Konva.Layer): void {
+    this.stopAnimation();
+    this.animation = new Konva.Animation((frame) => {
+      if (frame) {
+        this.robot.y(52 + Math.round(Math.sin(frame.time / 450) * 4));
+      }
+    }, layer);
+    this.animation.start();
+  }
 
-		// Stacked buttons
-		this.group.add(
-			this.createButton("MAIN GAME", buttonX, startY, buttonWidth, buttonHeight, onStartClick)
-		);
-		this.group.add(
-			this.createButton("HANGMAN", buttonX, startY + (buttonHeight + buttonGap), buttonWidth, buttonHeight, onHangmanClick)
-		);
-		this.group.add(
-			this.createButton("TRIVIA", buttonX, startY + 2 * (buttonHeight + buttonGap), buttonWidth, buttonHeight, onTriviaClick)
-		);
-	}
+  stopAnimation(): void {
+    this.animation?.stop();
+    this.animation = null;
+  }
 
-	private createButton(
-		label: string,
-		x: number,
-		y: number,
-		width: number,
-		height: number,
-		onClick: () => void
-	): Konva.Group {
-		const buttonGroup = new Konva.Group();
+  getGroup(): Konva.Group {
+    return this.group;
+  }
 
-		const rect = new Konva.Rect({
-			x,
-			y,
-			width,
-			height,
-			fill: "green",
-			cornerRadius: 10,
-			stroke: "darkgreen",
-			strokeWidth: 3,
-		});
+  show(): void {
+    this.group.show();
+  }
 
-		// Text fills the button and is centered both ways
-		const text = new Konva.Text({
-			x,
-			y,
-			width,
-			height,
-			text: label,
-			fontSize: 24,
-			fontFamily: "Arial",
-			fill: "white",
-			align: "center",
-			verticalAlign: "middle",
-		});
-
-		buttonGroup.add(rect);
-		buttonGroup.add(text);
-		buttonGroup.on("click", onClick);
-		buttonGroup.on("tap", onClick); // touchscreen support
-
-		return buttonGroup;
-	}
-
-	getGroup(): Group {
-		return this.group;
-	}
-
-	show(): void {
-		this.group.show();
-	}
-
-	hide(): void {
-		this.group.hide();
-	}
-}
-
-export abstract class ScreenController {
-	abstract getView(): View;
-
-	show(): void {
-		this.getView().show();
-	}
-
-	hide(): void {
-		this.getView().hide();
-	}
+  hide(): void {
+    this.stopAnimation();
+    this.group.hide();
+  }
 }

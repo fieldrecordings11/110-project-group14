@@ -128,14 +128,6 @@ code {
   color: #c0392b;
 }
 
-.menu-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: #222;
-}
-
 /* Back button on screens that don't have their own header (the roadmap). */
 .screen-back {
   position: absolute;
