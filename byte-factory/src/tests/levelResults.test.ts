@@ -7,6 +7,7 @@ import { GridMap } from '../interpreter/types';
 
 const mocks = vi.hoisted(() => ({
   reset: vi.fn(),
+  resetBlocks: vi.fn(),
   destroy: vi.fn(),
   stop: vi.fn(),
   play: vi.fn(async () => 'finished'),
@@ -59,6 +60,7 @@ vi.mock('../validator/validator', () => ({
 
 vi.mock('../saves/saveController', () => ({
   SaveController: class {
+    resetBlocks = mocks.resetBlocks;
     loadLevel() {}
   },
 }));
@@ -90,13 +92,14 @@ describe('Level result dialog', () => {
     });
     screen.mount(root);
     // jsdom does not implement these browser dialog methods.
-    const resultDialog = dialog();
-    resultDialog.showModal = vi.fn(() => {
-      resultDialog.open = true;
-    });
-    resultDialog.close = vi.fn(() => {
-      resultDialog.open = false;
-    });
+    for (const popup of root.querySelectorAll('dialog')) {
+      popup.showModal = vi.fn(() => {
+        popup.open = true;
+      });
+      popup.close = vi.fn(() => {
+        popup.open = false;
+      });
+    }
   }
 
   function button(id: string): HTMLButtonElement {
@@ -128,6 +131,36 @@ describe('Level result dialog', () => {
     screen.unmount();
     root.remove();
     vi.restoreAllMocks();
+  });
+
+  it('asks for confirmation without changing blocks or robot state', () => {
+    button('resetBlocksButton').click();
+    const popup = root.querySelector('#resetBlocksDialog') as HTMLDialogElement;
+    expect(popup.open).toBe(true);
+    expect(mocks.resetBlocks).not.toHaveBeenCalled();
+    expect(mocks.reset).not.toHaveBeenCalled();
+    expect(mocks.stop).not.toHaveBeenCalled();
+  });
+
+  it('cancels the reset without changing the program', () => {
+    button('resetBlocksButton').click();
+    button('cancelResetBlocksButton').click();
+    const popup = root.querySelector('#resetBlocksDialog') as HTMLDialogElement;
+    expect(popup.open).toBe(false);
+    expect(mocks.resetBlocks).not.toHaveBeenCalled();
+    expect(mocks.reset).not.toHaveBeenCalled();
+  });
+
+  it('resets blocks and the robot only after confirmation', () => {
+    button('resetBlocksButton').click();
+    button('confirmResetBlocksButton').click();
+    const popup = root.querySelector('#resetBlocksDialog') as HTMLDialogElement;
+    expect(popup.open).toBe(false);
+    expect(mocks.resetBlocks).toHaveBeenCalledOnce();
+    expect(mocks.stop).toHaveBeenCalledOnce();
+    expect(mocks.reset).toHaveBeenCalledWith(map.start);
+    expect(button('runButton').disabled).toBe(false);
+    expect(root.querySelector('#status')?.textContent).toBe('Blocks reset to default.');
   });
 
   it('starts with the result dialog closed', () => {

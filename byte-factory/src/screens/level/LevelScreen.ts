@@ -76,6 +76,15 @@ const TEMPLATE = `
       </div>
     </dialog>
 
+    <dialog id="resetBlocksDialog" aria-labelledby="resetBlocksTitle" aria-describedby="resetBlocksMessage">
+      <h2 id="resetBlocksTitle">Reset blocks?</h2>
+      <p id="resetBlocksMessage">This will replace your blocks with the level's starting blocks. Your current program will be lost.</p>
+      <div id="resetBlocksActions">
+        <button id="cancelResetBlocksButton" type="button" autofocus>Cancel</button>
+        <button id="confirmResetBlocksButton" type="button">Reset Blocks</button>
+      </div>
+    </dialog>
+
     <dialog id="saveErrorDialog" class="error-dialog" role="alertdialog" aria-labelledby="saveErrorTitle" aria-describedby="saveErrorMessage">
       <h2 id="saveErrorTitle">⚠️ Progress Not Saved</h2>
       <p id="saveErrorMessage"></p>
@@ -110,6 +119,7 @@ export class LevelScreen implements Screen {
     const statusEl = find<HTMLElement>('status');
     const runButton = find<HTMLButtonElement>('runButton');
     const resultDialog = find<HTMLDialogElement>('resultDialog');
+    const resetBlocksDialog = find<HTMLDialogElement>('resetBlocksDialog');
     const resultTitle = find<HTMLElement>('resultTitle');
     const resultMessage = find<HTMLElement>('resultMessage');
     const replayButton = find<HTMLButtonElement>('replayButton');
@@ -234,7 +244,7 @@ export class LevelScreen implements Screen {
     };
 
     const resetBlocks = () => {
-      if (!window.confirm('Reset all blocks for this level back to the starting state?')) return;
+      resetBlocksDialog.close();
       player.stop();
       saveCtrl.resetBlocks();
       view.reset(map.start);
@@ -266,7 +276,13 @@ export class LevelScreen implements Screen {
 
     runButton.addEventListener('click', () => void run());
     find<HTMLButtonElement>('resetButton').addEventListener('click', reset);
-    find<HTMLButtonElement>('resetBlocksButton').addEventListener('click', resetBlocks);
+    find<HTMLButtonElement>('resetBlocksButton').addEventListener('click', () => {
+      resetBlocksDialog.showModal();
+    });
+    find<HTMLButtonElement>('cancelResetBlocksButton').addEventListener('click', () => {
+      resetBlocksDialog.close();
+    });
+    find<HTMLButtonElement>('confirmResetBlocksButton').addEventListener('click', resetBlocks);
 
     find<HTMLButtonElement>('exportButton').addEventListener('click', () => {
       const levelId = saveCtrl.exportSave();
