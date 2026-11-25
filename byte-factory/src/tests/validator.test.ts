@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as Blockly from 'blockly/core';
 import 'blockly/blocks'; // built-in blocks, e.g. "text", "logic_boolean"
+import '../blocks/events'; // the "start" block
 import { Validator } from '../validator/validator';
 import { Level } from '../levels/types';
 
@@ -16,15 +17,6 @@ const level: Level = {
 describe('Validator', () => {
     const validator = new Validator();
     let workspace: Blockly.Workspace;
-
-    beforeAll(() => {
-        // the real "start" block isn't defined yet; this stand-in only needs the type name
-        if (!Blockly.Blocks['start']) {
-            Blockly.common.defineBlocksWithJsonArray([
-                { type: 'start', message0: 'start', nextStatement: null },
-            ]);
-        }
-    });
 
     beforeEach(() => {
         workspace = new Blockly.Workspace();

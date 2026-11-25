@@ -14,11 +14,11 @@ const COLORS = {
 const DEFAULT_TILE = 48;
 
 /**
- * Largest tile size (up to the default) that fits the grid's width in maxWidth pixels.
+ * Largest tile size (up to maxTile) that fits the grid's width in maxWidth pixels.
  * Height isn't checked, so a very tall grid can still be taller than its container.
  */
-export function fitTileSize(map: GridMap, maxWidth: number): number {
-  return Math.min(DEFAULT_TILE, Math.floor(maxWidth / map.width));
+export function fitTileSize(map: GridMap, maxWidth: number, maxTile = DEFAULT_TILE): number {
+  return Math.min(maxTile, Math.floor(maxWidth / map.width));
 }
 
 /** Draws the grid and the robot with Konva, and animates the robot for TracePlayer. */

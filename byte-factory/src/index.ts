@@ -9,12 +9,15 @@ import { ScreenManager } from './app/ScreenManager';
 import { ROADMAP_ENTRIES, getEntryLevel, toRoadmapLevels } from './app/roadmapEntries';
 import { sequencingLevel } from './levels/sequencing';
 import { HangmanMinigame } from './hangman/HangmanMinigame';
+import { getLesson } from './lessons';
 import { LevelScreen } from './screens/level/LevelScreen';
+import { LevelPreviewScreen } from './screens/preview/LevelPreviewScreen';
 import { MenuScreenController } from './screens/menu/MenuScreenController';
 import { RoadmapScreen } from './screens/RoadmapScreen';
 import { loadRoadmapProgress, saveRoadmapProgress } from './screens/roadmap-progress';
+import { MainGameTutorial, shouldShowMainGameTutorial } from './tutorial/MainGameTutorial';
 
-// The roadmap opens coding levels. Hangman is available separately from the main menu.
+// The roadmap opens coding lessons and levels. Hangman opens separately from the main menu.
 const root = document.getElementById('app');
 if (!root) {
   throw new Error(`div with id 'app' not found`);
@@ -22,6 +25,7 @@ if (!root) {
 
 const app = new ScreenManager(root);
 const hangman = new HangmanMinigame();
+const tutorial = new MainGameTutorial();
 let completedIds = loadRoadmapProgress();
 
 const markComplete = (id: string) => {
@@ -34,7 +38,13 @@ const openHangmanFromMenu = () => {
   hangman.open(sequencingLevel.id, () => showMenu());
 };
 
-const showMenu = () => app.show(new MenuScreenController(showRoadmap, openHangmanFromMenu));
+// Main Game opens the roadmap with the level-screen tutorial popped up on top of it.
+const startMainGame = () => {
+  showRoadmap();
+  if (shouldShowMainGameTutorial()) tutorial.open();
+};
+
+const showMenu = () => app.show(new MenuScreenController(startMainGame, openHangmanFromMenu));
 
 const showRoadmap = () =>
   app.show(
@@ -51,6 +61,7 @@ const openEntry = (id: string) => {
 
   const currentIndex = ROADMAP_ENTRIES.findIndex((stop) => stop.id === id);
   const nextEntry = ROADMAP_ENTRIES[currentIndex + 1];
+
   let onContinue: (() => void) | undefined;
 
   if (nextEntry) {
@@ -58,15 +69,33 @@ const openEntry = (id: string) => {
       openEntry(nextEntry.id);
     };
   }
+  const level = getEntryLevel(entry.levelId);
+  const startLevel = () =>
+    app.show(
+      new LevelScreen({
+        level,
+        onComplete: () => markComplete(entry.id),
+        onExit: showRoadmap,
+        onContinue: onContinue
+      }),
+    );
 
-  app.show(
-    new LevelScreen({
-      level: getEntryLevel(entry.levelId),
-      onComplete: () => markComplete(entry.id),
-      onExit: showRoadmap,
-      onContinue: onContinue,
-    }),
-  );
+  // Show the level's lesson first, if it has one.
+  const lesson = getLesson(level.id);
+  if (lesson && lesson.pages.length > 0) {
+    app.show(
+      new LevelPreviewScreen({
+        level,
+        levelNumber: currentIndex + 1,
+        lesson,
+        onStart: startLevel,
+        onBack: showRoadmap,
+      }),
+    );
+  } else {
+    startLevel();
+  }
+
 };
 
 showMenu();

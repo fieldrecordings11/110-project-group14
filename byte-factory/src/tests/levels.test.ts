@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import * as Blockly from 'blockly/core';
+import '../blocks/events';
 import { LevelRegistry } from '../levels';
 import { levels } from '../levels/data';
 import { Level } from '../levels/types';
@@ -90,5 +92,14 @@ describe('level data', () => {
         expect(isWall(level, level.map.start)).toBe(false);
         expect(isWall(level, level.map.goal)).toBe(false);
         expect(level.map.start).not.toEqual(level.map.goal);
+    });
+
+    it.each(levels.map((level) => [level.id, level]))('level %s starts with an undeletable start block', (_id, level) => {
+        const workspace = new Blockly.Workspace();
+        Blockly.serialization.workspaces.load(level.startState!, workspace);
+        const blocks = workspace.getAllBlocks(false);
+        expect(blocks.map((b) => b.type)).toEqual(['start']);
+        expect(blocks[0].isDeletable()).toBe(false);
+        workspace.dispose();
     });
 });
